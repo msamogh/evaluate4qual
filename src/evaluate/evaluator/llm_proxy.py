@@ -1,0 +1,128 @@
+from typing import *
+
+from datasets import Dataset
+from transformers import Pipeline, pipeline
+from transformers.pipelines import LLMProxyPipeline
+import transformers
+
+from .base import Evaluator
+from .utils import DatasetColumn
+from ..utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+class LLMProxyEvaluator(Evaluator):
+    def __init__(self, task="llm-proxy", default_metric_name=None):
+        super().__init__(task, default_metric_name=default_metric_name)
+
+    def prepare_data(
+        self, data: Dataset, input_variables: Sequence[Text], label_column: str
+    ):
+        """Prepare data."""
+        if data is None:
+            raise ValueError(
+                "Please specify a valid `data` object - either a `str` with a name or a `Dataset` object."
+            )
+        self.check_required_columns(
+            data,
+            {
+                **{
+                    input_variable: input_variable for input_variable in input_variables
+                },
+                "label_column": label_column,
+            },
+        )
+
+        try:
+            return {"references": data[label_column]}, {"inputs": {
+                input_variable: DatasetColumn(data, input_variable)
+                for input_variable in input_variables
+            }}
+        except Exception as e:
+            print(e)
+            print(f"input_variables: {input_variables}")
+            print(f"label_column: {label_column}")
+            print(f"input_variables: {input_variables}")
+            raise
+
+    def predictions_processor(self, predictions, label_mapping):
+        predictions = [
+            label_mapping[element["label"]]
+            if label_mapping is not None
+            else element["label"]
+            for element in predictions
+        ]
+        return {"predictions": predictions}
+
+    def compute(
+        self,
+        model_or_pipeline: "Pipeline" = None,
+        data: Union[str, Dataset] = None,
+        subset: Optional[str] = None,
+        split: Optional[str] = None,
+        metric: Union[str, "EvaluationModule"] = None,
+        tokenizer: Optional[Union[str, "PreTrainedTokenizer"]] = None,  # noqa: F821
+        strategy: Literal["simple", "bootstrap"] = "simple",
+        confidence_level: float = 0.95,
+        n_resamples: int = 9999,
+        device: int = None,
+        random_state: Optional[int] = None,
+        label_mapping: Optional[Dict[str, "Number"]] = None,
+        input_variables: Optional[List[str]] = None,
+        label_column: str = "label",
+    ) -> Tuple[Dict[str, float], Any]:
+        result = {}
+        self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
+
+        data = self.load_data(data=data, subset=subset, split=split)
+        metric_inputs, pipe_inputs = self.prepare_data(
+            data=data, input_variables=input_variables, label_column=label_column
+        )
+        pipe = self.prepare_pipeline(
+            model_or_pipeline=model_or_pipeline
+        )
+
+        metric = self.prepare_metric(metric)
+
+        # Compute predictions
+        predictions, perf_results = self.call_pipeline(pipe, **pipe_inputs)
+        predictions = self.predictions_processor(
+            predictions, label_mapping=label_mapping
+        )
+        metric_inputs.update(predictions)
+
+        # Compute metrics from references and predictions
+        metric_results = self.compute_metric(
+            metric=metric,
+            metric_inputs=metric_inputs,
+            strategy=strategy,
+            confidence_level=confidence_level,
+            n_resamples=n_resamples,
+            random_state=random_state,
+        )
+
+        result.update(metric_results)
+        result.update(perf_results)
+
+        return result
+
+    def prepare_pipeline(
+        self,
+        model_or_pipeline: LLMProxyPipeline,
+    ):
+        if (
+            isinstance(model_or_pipeline, str)
+            or isinstance(model_or_pipeline, transformers.PreTrainedModel)
+            or isinstance(model_or_pipeline, transformers.TFPreTrainedModel)
+        ):
+            pipe = pipeline(
+                self.task,
+                model=model_or_pipeline,
+            )
+        else:
+            if model_or_pipeline is None:
+                pipe = pipeline(self.task)
+            else:
+                pipe = model_or_pipeline
+        return pipe

@@ -107,7 +107,6 @@ class EvaluationSuite:
 
         results_all = []
         for task in self.suite:
-
             task_name = task.data
 
             if task.data_preprocessor:  # task requires extra preprocessing
