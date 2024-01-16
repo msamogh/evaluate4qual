@@ -1,4 +1,6 @@
 from typing import *
+import random
+random.seed(42)
 
 from datasets import Dataset
 from transformers import Pipeline, pipeline
@@ -39,13 +41,22 @@ class LLMProxyEvaluator(Evaluator):
         }}
 
     def predictions_processor(self, predictions, label_mapping):
-        predictions = [
-            float(label_mapping[element["label"]])
-            if label_mapping is not None
-            else float(element["label"])
-            for element in predictions
-        ]
-        return {"predictions": predictions}
+        def get_fallback_score(s):
+            """As a fallback, return any digit present in the string.
+            If even that fails, return -1.
+            """
+            import re
+            numbers = re.findall(r'-?\d+\.?\d*', s)
+            if len(numbers) == 0:
+                return -1
+            return numbers[0]
+        processed_predictions = []
+        for element in predictions:
+            try:
+                processed_predictions.append(float(element))
+            except ValueError:
+                processed_predictions.append(get_fallback_score(element))
+        return {"predictions": processed_predictions}
 
     def compute(
         self,
