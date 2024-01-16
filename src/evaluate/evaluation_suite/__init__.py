@@ -26,7 +26,9 @@ class SubTask:
 
     def __post_init__(self):
         if type(self.task_type) is not str:
-            raise ValueError(f"'task_type' must be type 'str', got {type(self.task_type)}")
+            raise ValueError(
+                f"'task_type' must be type 'str', got {type(self.task_type)}"
+            )
         if type(self.data) not in [Dataset, str]:
             raise ValueError(
                 f"'data' must be an already-instantiated Dataset object or type 'str', got {type(self.data)}"
@@ -36,9 +38,13 @@ class SubTask:
         if self.split and type(self.split) is not str:
             raise ValueError(f"'split' must be type 'str', got {type(self.split)}")
         if self.data_preprocessor and not callable(self.data_preprocessor):
-            raise ValueError(f"'data_preprocessor' must be a Callable', got {self.data_preprocessor}")
+            raise ValueError(
+                f"'data_preprocessor' must be a Callable', got {self.data_preprocessor}"
+            )
         if self.args_for_task and type(self.args_for_task) is not dict:
-            raise ValueError(f"'args_for_task' must be type 'dict', got {type(self.args_for_task)}")
+            raise ValueError(
+                f"'args_for_task' must be type 'dict', got {type(self.args_for_task)}"
+            )
 
 
 def import_main_class(module_path):
@@ -79,9 +85,15 @@ class EvaluationSuite:
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
     ):
-        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
+        download_mode = DownloadMode(
+            download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS
+        )
         evaluation_module = evaluation_module_factory(
-            path, module_type=None, revision=revision, download_config=download_config, download_mode=download_mode
+            path,
+            module_type=None,
+            revision=revision,
+            download_config=download_config,
+            download_mode=download_mode,
         )
         name = Path(path).stem
         evaluation_cls = import_main_class(evaluation_module.module_path)
@@ -99,8 +111,44 @@ class EvaluationSuite:
                 "No evaluation tasks found. The EvaluationSuite must include at least one SubTask definition."
             )
 
+    def run_task_wise(
+        self,
+        task_name: str,
+        model_or_pipeline: Union[
+            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
+        ],  # noqa: F821
+    ):
+        self.assert_suite_nonempty()
+
+        results = []
+        task = next(task for task in self.suite if task.subset == task_name)
+        task_name = task.data
+
+        if task.data_preprocessor:  # task requires extra preprocessing
+            ds = load_dataset(task.data, name=task.subset, split=task.split)
+            task.data = ds.map(task.data_preprocessor)
+
+        task_evaluator = evaluator(task.task_type)
+        args_for_task = task.args_for_task
+        args_for_task["model_or_pipeline"] = model_or_pipeline
+        args_for_task["data"] = task.data
+        args_for_task["subset"] = task.subset
+        args_for_task["split"] = task.split
+        results = task_evaluator.compute(**args_for_task)
+
+        results["task_name"] = (
+            task_name + "/" + task.subset if task.subset else task_name
+        )
+        results["data_preprocessor"] = (
+            str(task.data_preprocessor) if task.data_preprocessor is not None else None
+        )
+        return results
+
     def run(
-        self, model_or_pipeline: Union[str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"]  # noqa: F821
+        self,
+        model_or_pipeline: Union[
+            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
+        ],  # noqa: F821
     ) -> Dict[str, float]:
 
         self.assert_suite_nonempty()
@@ -121,7 +169,13 @@ class EvaluationSuite:
             args_for_task["split"] = task.split
             results = task_evaluator.compute(**args_for_task)
 
-            results["task_name"] = task_name + "/" + task.subset if task.subset else task_name
-            results["data_preprocessor"] = str(task.data_preprocessor) if task.data_preprocessor is not None else None
+            results["task_name"] = (
+                task_name + "/" + task.subset if task.subset else task_name
+            )
+            results["data_preprocessor"] = (
+                str(task.data_preprocessor)
+                if task.data_preprocessor is not None
+                else None
+            )
             results_all.append(results)
         return results_all

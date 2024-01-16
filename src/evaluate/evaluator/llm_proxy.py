@@ -40,9 +40,9 @@ class LLMProxyEvaluator(Evaluator):
 
     def predictions_processor(self, predictions, label_mapping):
         predictions = [
-            label_mapping[element["label"]]
+            float(label_mapping[element["label"]])
             if label_mapping is not None
-            else element["label"]
+            else float(element["label"])
             for element in predictions
         ]
         return {"predictions": predictions}
