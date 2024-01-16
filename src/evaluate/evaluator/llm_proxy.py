@@ -63,6 +63,7 @@ class LLMProxyEvaluator(Evaluator):
         label_mapping: Optional[Dict[str, "Number"]] = None,
         input_variables: Optional[List[str]] = None,
         label_column: str = "label",
+        return_predictions: bool = False,
     ) -> Tuple[Dict[str, float], Any]:
         result = {}
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
@@ -97,7 +98,7 @@ class LLMProxyEvaluator(Evaluator):
         result.update(metric_results)
         result.update(perf_results)
 
-        return result
+        return result if not return_predictions else (result, predictions)
 
     def prepare_pipeline(
         self,
@@ -111,10 +112,11 @@ class LLMProxyEvaluator(Evaluator):
             pipe = pipeline(
                 self.task,
                 model=model_or_pipeline,
+                return_predictions=True
             )
         else:
             if model_or_pipeline is None:
-                pipe = pipeline(self.task)
+                pipe = pipeline(self.task, return_predictions=True)
             else:
                 pipe = model_or_pipeline
         return pipe

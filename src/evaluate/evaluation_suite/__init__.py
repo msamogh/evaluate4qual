@@ -117,6 +117,7 @@ class EvaluationSuite:
         model_or_pipeline: Union[
             str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
         ],  # noqa: F821
+        return_predictions: bool = False,
     ):
         self.assert_suite_nonempty()
 
@@ -134,14 +135,16 @@ class EvaluationSuite:
         args_for_task["data"] = task.data
         args_for_task["subset"] = task.subset
         args_for_task["split"] = task.split
-        results = task_evaluator.compute(**args_for_task)
-
+        args_for_task["return_predictions"] = return_predictions
+        results, predictions = task_evaluator.compute(**args_for_task)
         results["task_name"] = (
             task_name + "/" + task.subset if task.subset else task_name
         )
         results["data_preprocessor"] = (
             str(task.data_preprocessor) if task.data_preprocessor is not None else None
         )
+        results["data"] = task.data
+        results.update(predictions)
         return results
 
     def run(
