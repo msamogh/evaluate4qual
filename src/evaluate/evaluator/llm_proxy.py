@@ -33,18 +33,10 @@ class LLMProxyEvaluator(Evaluator):
                 "label_column": label_column,
             },
         )
-
-        try:
-            return {"references": data[label_column]}, {"inputs": {
-                input_variable: DatasetColumn(data, input_variable)
-                for input_variable in input_variables
-            }}
-        except Exception as e:
-            print(e)
-            print(f"input_variables: {input_variables}")
-            print(f"label_column: {label_column}")
-            print(f"input_variables: {input_variables}")
-            raise
+        return {"references": data[label_column]}, {"inputs": {
+            input_variable: DatasetColumn(data, input_variable)
+            for input_variable in input_variables
+        }}
 
     def predictions_processor(self, predictions, label_mapping):
         predictions = [

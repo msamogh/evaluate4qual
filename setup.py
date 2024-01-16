@@ -64,7 +64,7 @@ TEMPLATE_REQUIRE = [
 ]
 
 EVALUATOR_REQUIRE = [
-   "transformers",
+#    "transformers",
    # for bootstrap computations in Evaluator
    "scipy>=1.7.1",
 ]
@@ -92,7 +92,7 @@ TESTS_REQUIRE = [
     "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
-    "transformers", # for evaluator
+    # "transformers", # for evaluator
     "mauve-text",
     "trectools",
     # to speed up pip backtracking
