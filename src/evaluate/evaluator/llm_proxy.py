@@ -1,5 +1,6 @@
 from typing import *
 import random
+
 random.seed(42)
 
 from datasets import Dataset
@@ -35,28 +36,32 @@ class LLMProxyEvaluator(Evaluator):
                 "label_column": label_column,
             },
         )
-        return {"references": data[label_column]}, {"inputs": {
-            input_variable: DatasetColumn(data, input_variable)
-            for input_variable in input_variables
-        }}
+        return {"references": data[label_column]}, {
+            "inputs": {
+                input_variable: DatasetColumn(data, input_variable)
+                for input_variable in input_variables
+            }
+        }
 
-    def predictions_processor(self, predictions, label_mapping):
+    def predictions_processor(self, llm_outputs, label_mapping):
         def get_fallback_score(s):
             """As a fallback, return any digit present in the string.
             If even that fails, return -1.
             """
             import re
-            numbers = re.findall(r'-?\d+\.?\d*', s)
+
+            numbers = re.findall(r"-?\d+\.?\d*", s)
             if len(numbers) == 0:
                 return -1
             return numbers[0]
-        processed_predictions = []
-        for element in predictions:
+
+        predictions = []
+        for output in llm_outputs:
             try:
-                processed_predictions.append(float(element))
+                predictions.append(float(output))
             except ValueError:
-                processed_predictions.append(get_fallback_score(element))
-        return {"predictions": processed_predictions}
+                predictions.append(get_fallback_score(output))
+        return {"predictions": predictions, "outputs": llm_outputs}
 
     def compute(
         self,
@@ -76,16 +81,14 @@ class LLMProxyEvaluator(Evaluator):
         label_column: str = "label",
         return_predictions: bool = False,
     ) -> Tuple[Dict[str, float], Any]:
-        result = {}
+        metric_result = {}
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
 
         data = self.load_data(data=data, subset=subset, split=split)
         metric_inputs, pipe_inputs = self.prepare_data(
             data=data, input_variables=input_variables, label_column=label_column
         )
-        pipe = self.prepare_pipeline(
-            model_or_pipeline=model_or_pipeline
-        )
+        pipe = self.prepare_pipeline(model_or_pipeline=model_or_pipeline)
 
         metric = self.prepare_metric(metric)
 
@@ -94,10 +97,10 @@ class LLMProxyEvaluator(Evaluator):
         predictions = self.predictions_processor(
             predictions, label_mapping=label_mapping
         )
-        metric_inputs.update(predictions)
+        metric_inputs.update({"predictions": predictions["predictions"]})
 
         # Compute metrics from references and predictions
-        metric_results = self.compute_metric(
+        metric_output = self.compute_metric(
             metric=metric,
             metric_inputs=metric_inputs,
             strategy=strategy,
@@ -106,10 +109,10 @@ class LLMProxyEvaluator(Evaluator):
             random_state=random_state,
         )
 
-        result.update(metric_results)
-        result.update(perf_results)
+        metric_result.update(metric_output)
+        metric_result.update(perf_results)
 
-        return result if not return_predictions else (result, predictions)
+        return metric_result if not return_predictions else (metric_result, predictions)
 
     def prepare_pipeline(
         self,
@@ -120,11 +123,7 @@ class LLMProxyEvaluator(Evaluator):
             or isinstance(model_or_pipeline, transformers.PreTrainedModel)
             or isinstance(model_or_pipeline, transformers.TFPreTrainedModel)
         ):
-            pipe = pipeline(
-                self.task,
-                model=model_or_pipeline,
-                return_predictions=True
-            )
+            pipe = pipeline(self.task, model=model_or_pipeline, return_predictions=True)
         else:
             if model_or_pipeline is None:
                 pipe = pipeline(self.task, return_predictions=True)
