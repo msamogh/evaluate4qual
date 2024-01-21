@@ -53,7 +53,7 @@ class LLMProxyEvaluator(Evaluator):
             numbers = re.findall(r"-?\d+\.?\d*", s)
             if len(numbers) == 0:
                 return -1
-            return numbers[0]
+            return numbers[-1]
 
         predictions = []
         for output in llm_outputs:
@@ -93,7 +93,9 @@ class LLMProxyEvaluator(Evaluator):
         metric = self.prepare_metric(metric)
 
         # Compute predictions
+        print(f"Invoking pipeline")
         predictions, perf_results = self.call_pipeline(pipe, **pipe_inputs)
+        print(f"Pipeline invoked")
         predictions = self.predictions_processor(
             predictions, label_mapping=label_mapping
         )

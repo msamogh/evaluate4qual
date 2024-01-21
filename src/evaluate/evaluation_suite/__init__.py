@@ -129,6 +129,7 @@ class EvaluationSuite:
             ds = load_dataset(task.data, name=task.subset, split=task.split)
             task.data = ds.map(task.data_preprocessor)
 
+        print(f"Preprocessing complete for task {task_name}")
         task_evaluator = evaluator(task.task_type)
         args_for_task = task.args_for_task
         args_for_task["model_or_pipeline"] = model_or_pipeline
