@@ -83,10 +83,18 @@ class EvaluationModuleInfo:
         >>> my_metric.info.write_to_directory("/path/to/directory/")
         ```
         """
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME),
+            "w",
+            encoding="utf-8",
+        ) as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(metric_info_dir, config.LICENSE_FILENAME),
+            "w",
+            encoding="utf-8",
+        ) as f:
             f.write(self.license)
 
     @classmethod
@@ -106,9 +114,13 @@ class EvaluationModuleInfo:
         """
         logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:
-            raise ValueError("Calling EvaluationModuleInfo.from_directory() with undefined metric_info_dir.")
+            raise ValueError(
+                "Calling EvaluationModuleInfo.from_directory() with undefined metric_info_dir."
+            )
 
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8") as f:
+        with open(
+            os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8"
+        ) as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 

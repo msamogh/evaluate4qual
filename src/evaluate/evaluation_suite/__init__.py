@@ -154,7 +154,6 @@ class EvaluationSuite:
             str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
         ],  # noqa: F821
     ) -> Dict[str, float]:
-
         self.assert_suite_nonempty()
 
         results_all = []

@@ -43,25 +43,8 @@ class LLMProxyEvaluator(Evaluator):
             }
         }
 
-    def predictions_processor(self, llm_outputs, label_mapping):
-        def get_fallback_score(s):
-            """As a fallback, return any digit present in the string.
-            If even that fails, return -1.
-            """
-            import re
-
-            numbers = re.findall(r"-?\d+\.?\d*", s)
-            if len(numbers) == 0:
-                return -1
-            return numbers[-1]
-
-        predictions = []
-        for output in llm_outputs:
-            try:
-                predictions.append(float(output))
-            except ValueError:
-                predictions.append(get_fallback_score(output))
-        return {"predictions": predictions, "outputs": llm_outputs}
+    def predictions_processor(self, llm_outputs, process_predictions_fn, *_):
+        return process_predictions_fn(llm_outputs)
 
     def compute(
         self,
@@ -80,6 +63,7 @@ class LLMProxyEvaluator(Evaluator):
         input_variables: Optional[List[str]] = None,
         label_column: str = "label",
         return_predictions: bool = False,
+        predictions_processor_fn: Optional[Callable] = None,
     ) -> Tuple[Dict[str, float], Any]:
         metric_result = {}
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
@@ -96,9 +80,7 @@ class LLMProxyEvaluator(Evaluator):
         print(f"Invoking pipeline")
         predictions, perf_results = self.call_pipeline(pipe, **pipe_inputs)
         print(f"Pipeline invoked")
-        predictions = self.predictions_processor(
-            predictions, label_mapping=label_mapping
-        )
+        predictions = self.predictions_processor(predictions, predictions_processor_fn)
         metric_inputs.update({"predictions": predictions["predictions"]})
 
         # Compute metrics from references and predictions

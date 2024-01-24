@@ -110,10 +110,20 @@ class Mse(evaluate.Metric):
                 "references": datasets.Value("float"),
             }
 
-    def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average", squared=True):
-
+    def _compute(
+        self,
+        predictions,
+        references,
+        sample_weight=None,
+        multioutput="uniform_average",
+        squared=True,
+    ):
         mse = mean_squared_error(
-            references, predictions, sample_weight=sample_weight, multioutput=multioutput, squared=squared
+            references,
+            predictions,
+            sample_weight=sample_weight,
+            multioutput=multioutput,
+            squared=squared,
         )
 
         return {"mse": mse}

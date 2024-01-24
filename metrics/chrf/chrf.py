@@ -140,7 +140,9 @@ class ChrF(evaluate.Metric):
                 datasets.Features(
                     {
                         "predictions": datasets.Value("string", id="sequence"),
-                        "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                        "references": datasets.Sequence(
+                            datasets.Value("string", id="sequence"), id="references"
+                        ),
                     }
                 ),
                 datasets.Features(
@@ -175,9 +177,13 @@ class ChrF(evaluate.Metric):
             raise ValueError(
                 "ChrF, as implemented by sacrebleu, requires the same number of references for each prediction"
             )
-        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
+        transformed_references = [
+            [refs[i] for refs in references] for i in range(references_per_prediction)
+        ]
 
-        sb_chrf = CHRF(char_order, word_order, beta, lowercase, whitespace, eps_smoothing)
+        sb_chrf = CHRF(
+            char_order, word_order, beta, lowercase, whitespace, eps_smoothing
+        )
         output = sb_chrf.corpus_score(predictions, transformed_references)
 
         return {

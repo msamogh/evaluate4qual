@@ -15,7 +15,12 @@
 
 import datasets
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
 
 import evaluate
 
@@ -107,7 +112,11 @@ class FRUGALSCORE(evaluate.Metric):
 
         def tokenize_function(data):
             return self.tokenizer(
-                data["sentence1"], data["sentence2"], max_length=max_length, truncation=True, padding=True
+                data["sentence1"],
+                data["sentence2"],
+                max_length=max_length,
+                truncation=True,
+                padding=True,
             )
 
         tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)

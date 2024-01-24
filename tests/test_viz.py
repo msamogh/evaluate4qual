@@ -7,7 +7,10 @@ from evaluate.visualization import radar_plot
 
 class TestViz(TestCase):
     def test_invert_range(self):
-        data = [{"accuracy": 0.9, "precision": 0.8}, {"accuracy": 0.7, "precision": 0.6}]
+        data = [
+            {"accuracy": 0.9, "precision": 0.8},
+            {"accuracy": 0.7, "precision": 0.6},
+        ]
         model_names = ["model1", "model2"]
         wrong_invert_range = ["latency_in_seconds"]  # Value not present in data
         with self.assertRaises(ValueError):

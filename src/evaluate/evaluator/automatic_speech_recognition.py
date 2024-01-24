@@ -19,11 +19,20 @@ from typing_extensions import Literal
 
 from ..module import EvaluationModule
 from ..utils.file_utils import add_end_docstrings, add_start_docstrings
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 
 
 if TYPE_CHECKING:
-    from transformers import Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 TASK_DOCUMENTATION = r"""
@@ -65,7 +74,11 @@ class AutomaticSpeechRecognitionEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,

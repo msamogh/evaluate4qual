@@ -35,7 +35,9 @@ def choose_split(data, subset=None):
     for split in preferred_split_order:
         if split in available_splits:
             return split
-    raise ValueError("No dataset split defined! Pass an explicit value to the `split` kwarg.")
+    raise ValueError(
+        "No dataset split defined! Pass an explicit value to the `split` kwarg."
+    )
 
 
 class DatasetColumnPair(list):
@@ -71,14 +73,18 @@ class DatasetColumnPair(list):
     def __getitem__(self, i):
         return {
             self.first_key: self.dataset[i][self.first_col],
-            self.second_key: self.dataset[i][self.second_col] if self.second_col else None,
+            self.second_key: self.dataset[i][self.second_col]
+            if self.second_col
+            else None,
         }
 
     def __iter__(self):
         return (
             {
                 self.first_key: self.dataset[i][self.first_col],
-                self.second_key: self.dataset[i][self.second_col] if self.second_col else None,
+                self.second_key: self.dataset[i][self.second_col]
+                if self.second_col
+                else None,
             }
             for i in range(len(self))
         )

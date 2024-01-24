@@ -80,11 +80,16 @@ class TextDuplicates(evaluate.Measurement):
     def _compute(self, data, list_duplicates=False):
         """Returns the duplicates contained in the input data and the number of times they are repeated."""
         if list_duplicates == True:
-            logger.warning("This functionality can be memory-intensive for large datasets!")
+            logger.warning(
+                "This functionality can be memory-intensive for large datasets!"
+            )
             n_dedup = len(set([get_hash(d) for d in data]))
             c = Counter(data)
             duplicates = {k: v for k, v in c.items() if v > 1}
-            return {"duplicate_fraction": 1 - (n_dedup / len(data)), "duplicates_dict": duplicates}
+            return {
+                "duplicate_fraction": 1 - (n_dedup / len(data)),
+                "duplicates_dict": duplicates,
+            }
         else:
             n_dedup = len(set([get_hash(d) for d in data]))
             return {"duplicate_fraction": 1 - (n_dedup / len(data))}

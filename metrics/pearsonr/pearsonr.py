@@ -96,7 +96,9 @@ class Pearsonr(evaluate.Metric):
                     "references": datasets.Value("float"),
                 }
             ),
-            reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"],
+            reference_urls=[
+                "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"
+            ],
         )
 
     def _compute(self, predictions, references, return_pvalue=False):

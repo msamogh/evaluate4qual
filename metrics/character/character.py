@@ -101,17 +101,25 @@ class Character(evaluate.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=[
                 datasets.Features(
-                    {"predictions": Value("string", id="prediction"), "references": Value("string", id="reference")}
+                    {
+                        "predictions": Value("string", id="prediction"),
+                        "references": Value("string", id="reference"),
+                    }
                 ),
                 datasets.Features(
                     {
                         "predictions": Value("string", id="prediction"),
-                        "references": Sequence(Value("string", id="reference"), id="references"),
+                        "references": Sequence(
+                            Value("string", id="reference"), id="references"
+                        ),
                     }
                 ),
             ],
             homepage="https://github.com/bramvanroy/CharacTER",
-            codebase_urls=["https://github.com/bramvanroy/CharacTER", "https://github.com/rwth-i6/CharacTER"],
+            codebase_urls=[
+                "https://github.com/bramvanroy/CharacTER",
+                "https://github.com/rwth-i6/CharacTER",
+            ],
         )
 
     def _compute(

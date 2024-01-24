@@ -20,12 +20,22 @@ from typing_extensions import Literal
 
 from ..module import EvaluationModule
 from ..utils.file_utils import add_end_docstrings, add_start_docstrings
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 from .utils import DatasetColumnPair
 
 
 if TYPE_CHECKING:
-    from transformers import FeatureExtractionMixin, Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        FeatureExtractionMixin,
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 TASK_DOCUMENTATION = r"""
@@ -62,16 +72,26 @@ class TextClassificationEvaluator(Evaluator):
     def __init__(self, task="text-classification", default_metric_name=None):
         super().__init__(task, default_metric_name=default_metric_name)
 
-    def prepare_data(self, data: Union[str, Dataset], input_column: str, second_input_column: str, label_column: str):
+    def prepare_data(
+        self,
+        data: Union[str, Dataset],
+        input_column: str,
+        second_input_column: str,
+        label_column: str,
+    ):
         if data is None:
             raise ValueError(
                 "Please specify a valid `data` object - either a `str` with a name or a `Dataset` object."
             )
 
-        self.check_required_columns(data, {"input_column": input_column, "label_column": label_column})
+        self.check_required_columns(
+            data, {"input_column": input_column, "label_column": label_column}
+        )
 
         if second_input_column is not None:
-            self.check_required_columns(data, {"second_input_column": second_input_column})
+            self.check_required_columns(
+                data, {"second_input_column": second_input_column}
+            )
 
         data = load_dataset(data) if isinstance(data, str) else data
 
@@ -81,7 +101,9 @@ class TextClassificationEvaluator(Evaluator):
 
     def predictions_processor(self, predictions, label_mapping):
         predictions = [
-            label_mapping[element["label"]] if label_mapping is not None else element["label"]
+            label_mapping[element["label"]]
+            if label_mapping is not None
+            else element["label"]
             for element in predictions
         ]
         return {"predictions": predictions}
@@ -91,14 +113,20 @@ class TextClassificationEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
         split: Optional[str] = None,
         metric: Union[str, EvaluationModule] = None,
         tokenizer: Optional[Union[str, "PreTrainedTokenizer"]] = None,  # noqa: F821
-        feature_extractor: Optional[Union[str, "FeatureExtractionMixin"]] = None,  # noqa: F821
+        feature_extractor: Optional[
+            Union[str, "FeatureExtractionMixin"]
+        ] = None,  # noqa: F821
         strategy: Literal["simple", "bootstrap"] = "simple",
         confidence_level: float = 0.95,
         n_resamples: int = 9999,
@@ -129,7 +157,10 @@ class TextClassificationEvaluator(Evaluator):
         # Prepare inputs
         data = self.load_data(data=data, subset=subset, split=split)
         metric_inputs, pipe_inputs = self.prepare_data(
-            data=data, input_column=input_column, second_input_column=second_input_column, label_column=label_column
+            data=data,
+            input_column=input_column,
+            second_input_column=second_input_column,
+            label_column=label_column,
         )
         pipe = self.prepare_pipeline(
             model_or_pipeline=model_or_pipeline,

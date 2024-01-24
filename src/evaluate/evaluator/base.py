@@ -138,7 +138,9 @@ class Evaluator(ABC):
         # bootstrap only works with functions that use args and no kwargs
         def build_args_metric(metric, key, **kwargs):
             def args_metric(*args):
-                return metric.compute(**{k: v for k, v in zip(kwargs.keys(), args)})[key]
+                return metric.compute(**{k: v for k, v in zip(kwargs.keys(), args)})[
+                    key
+                ]
 
             return args_metric
 
@@ -154,13 +156,18 @@ class Evaluator(ABC):
                 random_state=random_state,
             )
             bootstrap_dict[key] = {
-                "confidence_interval": (bs.confidence_interval.low, bs.confidence_interval.high),
+                "confidence_interval": (
+                    bs.confidence_interval.low,
+                    bs.confidence_interval.high,
+                ),
                 "standard_error": bs.standard_error,
             }
         return bootstrap_dict
 
     @staticmethod
-    def _compute_time_perf(start_time: float, end_time: float, num_samples: int) -> Dict[str, Any]:
+    def _compute_time_perf(
+        start_time: float, end_time: float, num_samples: int
+    ) -> Dict[str, Any]:
         """
         A utility function computing time performance metrics:
             - `total_time_in_seconds` - pipeline inference runtime for the evaluation data in seconds,
@@ -202,9 +209,13 @@ class Evaluator(ABC):
                 device = -1
 
         if device == -1:
-            logger.info("No GPU found. The default device for pipeline inference is set to CPU.")
+            logger.info(
+                "No GPU found. The default device for pipeline inference is set to CPU."
+            )
         else:
-            logger.info("GPU found. The default device for pipeline inference is set to GPU (CUDA:0).")
+            logger.info(
+                "GPU found. The default device for pipeline inference is set to GPU (CUDA:0)."
+            )
 
         return device
 
@@ -218,14 +229,20 @@ class Evaluator(ABC):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
         split: Optional[str] = None,
         metric: Union[str, EvaluationModule] = None,
         tokenizer: Optional[Union[str, "PreTrainedTokenizer"]] = None,  # noqa: F821
-        feature_extractor: Optional[Union[str, "FeatureExtractionMixin"]] = None,  # noqa: F821
+        feature_extractor: Optional[
+            Union[str, "FeatureExtractionMixin"]
+        ] = None,  # noqa: F821
         strategy: Literal["simple", "bootstrap"] = "simple",
         confidence_level: float = 0.95,
         n_resamples: int = 9999,
@@ -235,14 +252,15 @@ class Evaluator(ABC):
         label_column: str = "label",
         label_mapping: Optional[Dict[str, Number]] = None,
     ) -> Dict[str, float]:
-
         result = {}
 
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
 
         # Prepare inputs
         data = self.load_data(data=data, subset=subset, split=split)
-        metric_inputs, pipe_inputs = self.prepare_data(data=data, input_column=input_column, label_column=label_column)
+        metric_inputs, pipe_inputs = self.prepare_data(
+            data=data, input_column=input_column, label_column=label_column
+        )
         pipe = self.prepare_pipeline(
             model_or_pipeline=model_or_pipeline,
             tokenizer=tokenizer,
@@ -280,7 +298,11 @@ class Evaluator(ABC):
 
     @staticmethod
     def check_for_mismatch_in_device_setup(device, model_or_pipeline):
-        if device is not None and device != -1 and isinstance(model_or_pipeline, Pipeline):
+        if (
+            device is not None
+            and device != -1
+            and isinstance(model_or_pipeline, Pipeline)
+        ):
             if model_or_pipeline.device.type == "cpu":
                 raise ValueError(
                     "The value of the `device` kwarg passed to `compute` suggests that this pipe should be run on an "
@@ -292,7 +314,9 @@ class Evaluator(ABC):
                     f"This pipeline was instantiated on device {model_or_pipeline.device.index} but device={device} was passed to `compute`."
                 )
 
-    def check_required_columns(self, data: Union[str, Dataset], columns_names: Dict[str, str]):
+    def check_required_columns(
+        self, data: Union[str, Dataset], columns_names: Dict[str, str]
+    ):
         """
         Ensure the columns required for the evaluation are present in the dataset.
 
@@ -344,10 +368,14 @@ class Evaluator(ABC):
         """
         if split is None:
             split = choose_split(data, subset)
-            logger.warning(f"Dataset split not defined! Automatically evaluating with split: {split.upper()}")
+            logger.warning(
+                f"Dataset split not defined! Automatically evaluating with split: {split.upper()}"
+            )
         return split
 
-    def load_data(self, data: Union[str, Dataset], subset: str = None, split: str = None):
+    def load_data(
+        self, data: Union[str, Dataset], subset: str = None, split: str = None
+    ):
         """
         Load dataset with given subset and split.
         Args:
@@ -380,14 +408,18 @@ class Evaluator(ABC):
             return data
         elif isinstance(data, Dataset):
             if split is not None or subset is not None:
-                logger.warning("`data` is a preloaded Dataset! Ignoring `subset` and `split`.")
+                logger.warning(
+                    "`data` is a preloaded Dataset! Ignoring `subset` and `split`."
+                )
             return data
         else:
             raise ValueError(
                 "Please specify a valid `data` object - either a `str` with a name or a `Dataset` object."
             )
 
-    def prepare_data(self, data: Dataset, input_column: str, label_column: str, *args, **kwargs):
+    def prepare_data(
+        self, data: Dataset, input_column: str, label_column: str, *args, **kwargs
+    ):
         """
         Prepare data.
 
@@ -415,15 +447,23 @@ class Evaluator(ABC):
         ```
         """
 
-        self.check_required_columns(data, {"input_column": input_column, "label_column": label_column})
+        self.check_required_columns(
+            data, {"input_column": input_column, "label_column": label_column}
+        )
 
         return {"references": data[label_column]}, DatasetColumn(data, input_column)
 
     def prepare_pipeline(
         self,
-        model_or_pipeline: Union[str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"],  # noqa: F821
-        tokenizer: Union["PreTrainedTokenizerBase", "FeatureExtractionMixin"] = None,  # noqa: F821
-        feature_extractor: Union["PreTrainedTokenizerBase", "FeatureExtractionMixin"] = None,  # noqa: F821
+        model_or_pipeline: Union[
+            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
+        ],  # noqa: F821
+        tokenizer: Union[
+            "PreTrainedTokenizerBase", "FeatureExtractionMixin"
+        ] = None,  # noqa: F821
+        feature_extractor: Union[
+            "PreTrainedTokenizerBase", "FeatureExtractionMixin"
+        ] = None,  # noqa: F821
         device: int = None,
     ):
         """
@@ -470,8 +510,12 @@ class Evaluator(ABC):
             else:
                 pipe = model_or_pipeline
             if tokenizer is not None and feature_extractor is not None:
-                logger.warning("Ignoring the value of the preprocessor argument (`tokenizer` or `feature_extractor`).")
-        if (pipe.task != self.task) and not (self.task == "translation" and pipe.task.startswith("translation")):
+                logger.warning(
+                    "Ignoring the value of the preprocessor argument (`tokenizer` or `feature_extractor`)."
+                )
+        if (pipe.task != self.task) and not (
+            self.task == "translation" and pipe.task.startswith("translation")
+        ):
             raise ValueError(
                 f"Incompatible `model_or_pipeline`. Please specify `model_or_pipeline` compatible with the `{self.task}` task."
             )
@@ -512,7 +556,9 @@ class Evaluator(ABC):
         start_time = perf_counter()
         pipe_output = pipe(*args, **kwargs, **self.PIPELINE_KWARGS)
         end_time = perf_counter()
-        return pipe_output, self._compute_time_perf(start_time, end_time, len(pipe_output))
+        return pipe_output, self._compute_time_perf(
+            start_time, end_time, len(pipe_output)
+        )
 
     def compute_metric(
         self,

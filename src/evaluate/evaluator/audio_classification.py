@@ -20,11 +20,21 @@ from typing_extensions import Literal
 
 from ..module import EvaluationModule
 from ..utils.file_utils import add_end_docstrings, add_start_docstrings
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 
 
 if TYPE_CHECKING:
-    from transformers import FeatureExtractionMixin, Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        FeatureExtractionMixin,
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 TASK_DOCUMENTATION = r"""
@@ -92,8 +102,13 @@ class AudioClassificationEvaluator(Evaluator):
         super().__init__(task, default_metric_name=default_metric_name)
 
     def predictions_processor(self, predictions, label_mapping):
-        pred_label = [max(pred, key=lambda x: x["score"])["label"] for pred in predictions]
-        pred_label = [label_mapping[pred] if label_mapping is not None else pred for pred in pred_label]
+        pred_label = [
+            max(pred, key=lambda x: x["score"])["label"] for pred in predictions
+        ]
+        pred_label = [
+            label_mapping[pred] if label_mapping is not None else pred
+            for pred in pred_label
+        ]
 
         return {"predictions": pred_label}
 
@@ -102,14 +117,20 @@ class AudioClassificationEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
         split: Optional[str] = None,
         metric: Union[str, EvaluationModule] = None,
         tokenizer: Optional[Union[str, "PreTrainedTokenizer"]] = None,  # noqa: F821
-        feature_extractor: Optional[Union[str, "FeatureExtractionMixin"]] = None,  # noqa: F821
+        feature_extractor: Optional[
+            Union[str, "FeatureExtractionMixin"]
+        ] = None,  # noqa: F821
         strategy: Literal["simple", "bootstrap"] = "simple",
         confidence_level: float = 0.95,
         n_resamples: int = 9999,
@@ -119,7 +140,6 @@ class AudioClassificationEvaluator(Evaluator):
         label_column: str = "label",
         label_mapping: Optional[Dict[str, Number]] = None,
     ) -> Tuple[Dict[str, float], Any]:
-
         """
         input_column (`str`, defaults to `"file"`):
             The name of the column containing either the audio files or a raw waveform, represented as a numpy array, in the dataset specified by `data`.

@@ -252,7 +252,9 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             # The following changes in the error are just here to make the offline timeout error prettier
             e.request.url = url
             max_retry_error = e.args[0]
-            max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
+            max_retry_error.args = (
+                max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),
+            )
             e.args = (max_retry_error,)
             raise
 
@@ -287,4 +289,7 @@ def set_current_working_directory_to_temp_dir(*args, **kwargs):
 
 
 def is_rng_equal(rng1, rng2):
-    return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()
+    return (
+        deepcopy(rng1).integers(0, 100, 10).tolist()
+        == deepcopy(rng2).integers(0, 100, 10).tolist()
+    )

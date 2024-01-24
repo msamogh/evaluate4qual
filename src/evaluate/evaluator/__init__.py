@@ -29,7 +29,11 @@ from .automatic_speech_recognition import AutomaticSpeechRecognitionEvaluator
 from .base import Evaluator
 from .image_classification import ImageClassificationEvaluator
 from .question_answering import QuestionAnsweringEvaluator
-from .text2text_generation import SummarizationEvaluator, Text2TextGenerationEvaluator, TranslationEvaluator
+from .text2text_generation import (
+    SummarizationEvaluator,
+    Text2TextGenerationEvaluator,
+    TranslationEvaluator,
+)
 from .text_classification import TextClassificationEvaluator
 from .llm_proxy import LLMProxyEvaluator
 from .text_generation import TextGenerationEvaluator
@@ -80,7 +84,7 @@ SUPPORTED_EVALUATOR_TASKS = {
     "llm-proxy": {
         "implementation": LLMProxyEvaluator,
         "default_metric_name": "accuracy",
-    }
+    },
 }
 
 
@@ -109,10 +113,17 @@ def check_task(task: str) -> Dict:
     if task in TASK_ALIASES:
         task = TASK_ALIASES[task]
     if not check_pipeline_task(task):
-        raise KeyError(f"Unknown task {task}, available tasks are: {get_supported_tasks()}.")
-    if task in SUPPORTED_EVALUATOR_TASKS.keys() and task in SUPPORTED_PIPELINE_TASKS.keys():
+        raise KeyError(
+            f"Unknown task {task}, available tasks are: {get_supported_tasks()}."
+        )
+    if (
+        task in SUPPORTED_EVALUATOR_TASKS.keys()
+        and task in SUPPORTED_PIPELINE_TASKS.keys()
+    ):
         return SUPPORTED_EVALUATOR_TASKS[task]
-    raise KeyError(f"Unknown task {task}, available tasks are: {get_supported_tasks()}.")
+    raise KeyError(
+        f"Unknown task {task}, available tasks are: {get_supported_tasks()}."
+    )
 
 
 def evaluator(task: str = None) -> Evaluator:

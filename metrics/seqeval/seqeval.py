@@ -109,8 +109,12 @@ class Seqeval(evaluate.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="label"), id="sequence"
+                    ),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="label"), id="sequence"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/chakki-works/seqeval"],
@@ -132,7 +136,9 @@ class Seqeval(evaluate.Metric):
                 scheme_module = importlib.import_module("seqeval.scheme")
                 scheme = getattr(scheme_module, scheme)
             except AttributeError:
-                raise ValueError(f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {scheme}")
+                raise ValueError(
+                    f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {scheme}"
+                )
         report = classification_report(
             y_true=references,
             y_pred=predictions,
@@ -159,6 +165,8 @@ class Seqeval(evaluate.Metric):
         scores["overall_precision"] = overall_score["precision"]
         scores["overall_recall"] = overall_score["recall"]
         scores["overall_f1"] = overall_score["f1-score"]
-        scores["overall_accuracy"] = accuracy_score(y_true=references, y_pred=predictions)
+        scores["overall_accuracy"] = accuracy_score(
+            y_true=references, y_pred=predictions
+        )
 
         return scores

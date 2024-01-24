@@ -9,7 +9,13 @@ import numpy as np
 import torch
 import transformers
 from datasets import load_dataset
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification, Trainer, TrainingArguments, pipeline
+from transformers import (
+    AutoFeatureExtractor,
+    AutoModelForImageClassification,
+    Trainer,
+    TrainingArguments,
+    pipeline,
+)
 
 from evaluate import evaluator, load
 
@@ -55,13 +61,16 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         with open(
-            f"{os.path.join(self.dir_path, 'textclassification_sst2_transformers', 'eval_results.json')}", "r"
+            f"{os.path.join(self.dir_path, 'textclassification_sst2_transformers', 'eval_results.json')}",
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
         eval_dataset = load_dataset("glue", "sst2", split="validation[:80]")
 
-        pipe = pipeline(task="text-classification", model=model_name, tokenizer=model_name)
+        pipe = pipeline(
+            task="text-classification", model=model_name, tokenizer=model_name
+        )
 
         task_evaluator = evaluator(task="text-classification")
         evaluator_results = task_evaluator.compute(
@@ -74,7 +83,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
             strategy="simple",
         )
 
-        self.assertEqual(transformers_results["eval_accuracy"], evaluator_results["accuracy"])
+        self.assertEqual(
+            transformers_results["eval_accuracy"], evaluator_results["accuracy"]
+        )
 
     @slow
     def test_text_classification_parity_two_columns(self):
@@ -100,13 +111,21 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         with open(
-            f"{os.path.join(self.dir_path, 'textclassification_mnli_transformers', 'eval_results.json')}", "r"
+            f"{os.path.join(self.dir_path, 'textclassification_mnli_transformers', 'eval_results.json')}",
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
-        eval_dataset = load_dataset("glue", "mnli", split=f"validation_matched[:{max_eval_samples}]")
+        eval_dataset = load_dataset(
+            "glue", "mnli", split=f"validation_matched[:{max_eval_samples}]"
+        )
 
-        pipe = pipeline(task="text-classification", model=model_name, tokenizer=model_name, max_length=256)
+        pipe = pipeline(
+            task="text-classification",
+            model=model_name,
+            tokenizer=model_name,
+            max_length=256,
+        )
 
         task_evaluator = evaluator(task="text-classification")
         evaluator_results = task_evaluator.compute(
@@ -119,7 +138,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
             label_mapping={"LABEL_0": 0, "LABEL_1": 1, "LABEL_2": 2},
         )
 
-        self.assertEqual(transformers_results["eval_accuracy"], evaluator_results["accuracy"])
+        self.assertEqual(
+            transformers_results["eval_accuracy"], evaluator_results["accuracy"]
+        )
 
     def test_image_classification_parity(self):
         # we can not compare to the Pytorch transformers example, that uses custom preprocessing on the images
@@ -135,7 +156,10 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
 
         def collate_fn(examples):
             pixel_values = torch.stack(
-                [torch.tensor(feature_extractor(example["image"])["pixel_values"][0]) for example in examples]
+                [
+                    torch.tensor(feature_extractor(example["image"])["pixel_values"][0])
+                    for example in examples
+                ]
             )
             labels = torch.tensor([example["labels"] for example in examples])
             return {"pixel_values": pixel_values, "labels": labels}
@@ -144,7 +168,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         trainer = Trainer(
             model=model,
             args=TrainingArguments(
-                output_dir=os.path.join(self.dir_path, "imageclassification_beans_transformers"),
+                output_dir=os.path.join(
+                    self.dir_path, "imageclassification_beans_transformers"
+                ),
                 remove_unused_columns=False,
             ),
             train_dataset=None,
@@ -160,11 +186,14 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         trainer.save_metrics("eval", metrics)
 
         with open(
-            f"{os.path.join(self.dir_path, 'imageclassification_beans_transformers', 'eval_results.json')}", "r"
+            f"{os.path.join(self.dir_path, 'imageclassification_beans_transformers', 'eval_results.json')}",
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
-        pipe = pipeline(task="image-classification", model=model_name, feature_extractor=model_name)
+        pipe = pipeline(
+            task="image-classification", model=model_name, feature_extractor=model_name
+        )
 
         task_evaluator = evaluator(task="image-classification")
         evaluator_results = task_evaluator.compute(
@@ -177,7 +206,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
             strategy="simple",
         )
 
-        self.assertEqual(transformers_results["eval_accuracy"], evaluator_results["accuracy"])
+        self.assertEqual(
+            transformers_results["eval_accuracy"], evaluator_results["accuracy"]
+        )
 
     def test_question_answering_parity(self):
         model_name_v1 = "anas-awadalla/bert-tiny-finetuned-squad"
@@ -203,7 +234,8 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         with open(
-            f"{os.path.join(self.dir_path, 'questionanswering_squad_transformers', 'eval_results.json')}", "r"
+            f"{os.path.join(self.dir_path, 'questionanswering_squad_transformers', 'eval_results.json')}",
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
@@ -226,7 +258,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         self.assertEqual(transformers_results["eval_f1"], evaluator_results["f1"])
-        self.assertEqual(transformers_results["eval_exact_match"], evaluator_results["exact_match"])
+        self.assertEqual(
+            transformers_results["eval_exact_match"], evaluator_results["exact_match"]
+        )
 
         # test squad_v2-like dataset
         subprocess.run(
@@ -243,7 +277,8 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         with open(
-            f"{os.path.join(self.dir_path, 'questionanswering_squadv2_transformers', 'eval_results.json')}", "r"
+            f"{os.path.join(self.dir_path, 'questionanswering_squadv2_transformers', 'eval_results.json')}",
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
@@ -266,8 +301,12 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         self.assertEqual(transformers_results["eval_f1"], evaluator_results["f1"])
-        self.assertEqual(transformers_results["eval_HasAns_f1"], evaluator_results["HasAns_f1"])
-        self.assertEqual(transformers_results["eval_NoAns_f1"], evaluator_results["NoAns_f1"])
+        self.assertEqual(
+            transformers_results["eval_HasAns_f1"], evaluator_results["HasAns_f1"]
+        )
+        self.assertEqual(
+            transformers_results["eval_NoAns_f1"], evaluator_results["NoAns_f1"]
+        )
 
     def test_token_classification_parity(self):
         model_name = "hf-internal-testing/tiny-bert-for-token-classification"
@@ -291,7 +330,12 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
         )
 
         with open(
-            os.path.join(self.dir_path, "tokenclassification_conll2003_transformers", "eval_results.json"), "r"
+            os.path.join(
+                self.dir_path,
+                "tokenclassification_conll2003_transformers",
+                "eval_results.json",
+            ),
+            "r",
         ) as f:
             transformers_results = json.load(f)
 
@@ -309,5 +353,9 @@ class TestEvaluatorTrainerParity(unittest.TestCase):
             strategy="simple",
         )
 
-        self.assertEqual(transformers_results["eval_accuracy"], evaluator_results["overall_accuracy"])
-        self.assertEqual(transformers_results["eval_f1"], evaluator_results["overall_f1"])
+        self.assertEqual(
+            transformers_results["eval_accuracy"], evaluator_results["overall_accuracy"]
+        )
+        self.assertEqual(
+            transformers_results["eval_f1"], evaluator_results["overall_f1"]
+        )

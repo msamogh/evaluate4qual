@@ -46,11 +46,17 @@ module = load("{namespace}/{module_slug}")
 
 
 def main():
-    parser = argparse.ArgumentParser("HuggingFace Evaluate CLI tool", usage="evaluate-cli <command> [<args>]")
+    parser = argparse.ArgumentParser(
+        "HuggingFace Evaluate CLI tool", usage="evaluate-cli <command> [<args>]"
+    )
     subparsers = parser.add_subparsers()
-    parser_create = subparsers.add_parser("create", help="Create new evaluation module.")
+    parser_create = subparsers.add_parser(
+        "create", help="Create new evaluation module."
+    )
     parser_create.add_argument(
-        "module_name", type=str, help='Pretty name of new evaluation module, e.g. "Recall" or "Exact Match".'
+        "module_name",
+        type=str,
+        help='Pretty name of new evaluation module, e.g. "Recall" or "Exact Match".',
     )
     parser_create.add_argument(
         "--module_type",
@@ -59,18 +65,34 @@ def main():
         help="Type of module, has to be one of [metric|comparison|measurement].",
     )
     parser_create.add_argument(
-        "--dataset_name", default="", type=str, help="Name of dataset if evaluation module is dataset specific."
+        "--dataset_name",
+        default="",
+        type=str,
+        help="Name of dataset if evaluation module is dataset specific.",
     )
-    parser_create.add_argument("--module_description", type=str, help="Short description of evaluation module.")
-    parser_create.add_argument("--output_dir", default=Path.cwd(), type=str, help="Path to output directory.")
     parser_create.add_argument(
-        "--organization", default=None, type=str, help="Organization on the Hub to push evaluation module to."
+        "--module_description", type=str, help="Short description of evaluation module."
     )
-    parser_create.add_argument("--private", action="store_true", help="Sets evaluation module repository to private.")
+    parser_create.add_argument(
+        "--output_dir", default=Path.cwd(), type=str, help="Path to output directory."
+    )
+    parser_create.add_argument(
+        "--organization",
+        default=None,
+        type=str,
+        help="Organization on the Hub to push evaluation module to.",
+    )
+    parser_create.add_argument(
+        "--private",
+        action="store_true",
+        help="Sets evaluation module repository to private.",
+    )
     args = vars(parser.parse_args())
 
     if args["module_type"] not in ["metric", "comparison", "measurement"]:
-        raise ValueError("The module_type needs to be one of metric, comparison, or measurement")
+        raise ValueError(
+            "The module_type needs to be one of metric, comparison, or measurement"
+        )
 
     if "-" in args["module_name"]:
         raise ValueError("Hyphens ('-') are not allowed in module names.")
@@ -88,7 +110,12 @@ def main():
     repo_url = f"https://huggingface.co/spaces/{namespace}/{module_slug}"
 
     try:
-        create_repo(namespace + "/" + module_slug, repo_type="space", space_sdk="gradio", private=args["private"])
+        create_repo(
+            namespace + "/" + module_slug,
+            repo_type="space",
+            space_sdk="gradio",
+            private=args["private"],
+        )
     except Exception as exception:
         logger.error(
             f"Could not create Space for module at hf.co/spaces/{namespace}/{module_slug}. Make sure this space does not exist already."

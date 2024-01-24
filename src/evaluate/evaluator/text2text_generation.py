@@ -19,11 +19,20 @@ from typing_extensions import Literal
 
 from ..module import EvaluationModule
 from ..utils.file_utils import add_start_docstrings
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 
 
 if TYPE_CHECKING:
-    from transformers import Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 TASK_DOCUMENTATION_KWARGS = r"""
@@ -100,7 +109,11 @@ class Text2TextGenerationEvaluator(Evaluator):
         super().__init__(task, default_metric_name=default_metric_name)
 
     def predictions_processor(self, predictions, label_mapping):
-        return {"predictions": [pred[f"{self.PREDICTION_PREFIX}_text"] for pred in predictions]}
+        return {
+            "predictions": [
+                pred[f"{self.PREDICTION_PREFIX}_text"] for pred in predictions
+            ]
+        }
 
     @add_start_docstrings(
         EVALUTOR_COMPUTE_START_DOCSTRING,
@@ -111,7 +124,11 @@ class Text2TextGenerationEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
@@ -172,7 +189,11 @@ class SummarizationEvaluator(Text2TextGenerationEvaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
@@ -231,7 +252,11 @@ class TranslationEvaluator(Text2TextGenerationEvaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,

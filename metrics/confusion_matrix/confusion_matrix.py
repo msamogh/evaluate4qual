@@ -77,12 +77,20 @@ class ConfusionMatrix(evaluate.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html"],
+            reference_urls=[
+                "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html"
+            ],
         )
 
-    def _compute(self, predictions, references, labels=None, sample_weight=None, normalize=None):
+    def _compute(
+        self, predictions, references, labels=None, sample_weight=None, normalize=None
+    ):
         return {
             "confusion_matrix": confusion_matrix(
-                references, predictions, labels=labels, sample_weight=sample_weight, normalize=normalize
+                references,
+                predictions,
+                labels=labels,
+                sample_weight=sample_weight,
+                normalize=normalize,
             )
         }

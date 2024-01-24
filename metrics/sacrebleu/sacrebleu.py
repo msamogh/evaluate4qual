@@ -119,7 +119,9 @@ class Sacrebleu(evaluate.Metric):
                 datasets.Features(
                     {
                         "predictions": datasets.Value("string", id="sequence"),
-                        "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                        "references": datasets.Sequence(
+                            datasets.Value("string", id="sequence"), id="references"
+                        ),
                     }
                 ),
                 datasets.Features(
@@ -154,8 +156,12 @@ class Sacrebleu(evaluate.Metric):
 
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
-            raise ValueError("Sacrebleu requires the same number of references for each prediction")
-        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
+            raise ValueError(
+                "Sacrebleu requires the same number of references for each prediction"
+            )
+        transformed_references = [
+            [refs[i] for refs in references] for i in range(references_per_prediction)
+        ]
         output = scb.corpus_bleu(
             predictions,
             transformed_references,

@@ -135,7 +135,9 @@ class GoogleBleu(evaluate.Metric):
                 datasets.Features(
                     {
                         "predictions": datasets.Value("string", id="sequence"),
-                        "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                        "references": datasets.Sequence(
+                            datasets.Value("string", id="sequence"), id="references"
+                        ),
                     }
                 ),
                 datasets.Features(
@@ -163,6 +165,9 @@ class GoogleBleu(evaluate.Metric):
         predictions = [tokenizer(p) for p in predictions]
         return {
             "google_bleu": gleu_score.corpus_gleu(
-                list_of_references=references, hypotheses=predictions, min_len=min_len, max_len=max_len
+                list_of_references=references,
+                hypotheses=predictions,
+                min_len=min_len,
+                max_len=max_len,
             )
         }

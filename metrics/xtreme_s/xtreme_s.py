@@ -87,7 +87,15 @@ Examples:
     {'f1': 0.58, 'accuracy': 0.6}
 """
 
-_CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "babel", "covost2", "fleurs-lang_id", "minds14"]
+_CONFIG_NAMES = [
+    "fleurs-asr",
+    "mls",
+    "voxpopuli",
+    "babel",
+    "covost2",
+    "fleurs-lang_id",
+    "minds14",
+]
 SENTENCE_DELIMITER = ""
 
 try:
@@ -97,7 +105,9 @@ try:
 except ImportError:
     _jiwer_available = False
 
-if _jiwer_available and version.parse(importlib_metadata.version("jiwer")) < version.parse("2.3.0"):
+if _jiwer_available and version.parse(
+    importlib_metadata.version("jiwer")
+) < version.parse("2.3.0"):
 
     class SentencesToListOfCharacters(tr.AbstractTransform):
         def __init__(self, sentence_delimiter: str = " "):
@@ -110,12 +120,20 @@ if _jiwer_available and version.parse(importlib_metadata.version("jiwer")) < ver
             chars = []
             for sent_idx, sentence in enumerate(inp):
                 chars.extend(self.process_string(sentence))
-                if self.sentence_delimiter is not None and self.sentence_delimiter != "" and sent_idx < len(inp) - 1:
+                if (
+                    self.sentence_delimiter is not None
+                    and self.sentence_delimiter != ""
+                    and sent_idx < len(inp) - 1
+                ):
                     chars.append(self.sentence_delimiter)
             return chars
 
     cer_transform = tr.Compose(
-        [tr.RemoveMultipleSpaces(), tr.Strip(), SentencesToListOfCharacters(SENTENCE_DELIMITER)]
+        [
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            SentencesToListOfCharacters(SENTENCE_DELIMITER),
+        ]
     )
 elif _jiwer_available:
     cer_transform = tr.Compose(
@@ -170,8 +188,12 @@ def bleu(
 
     references_per_prediction = len(labels[0])
     if any(len(refs) != references_per_prediction for refs in labels):
-        raise ValueError("Sacrebleu requires the same number of references for each prediction")
-    transformed_references = [[refs[i] for refs in labels] for i in range(references_per_prediction)]
+        raise ValueError(
+            "Sacrebleu requires the same number of references for each prediction"
+        )
+    transformed_references = [
+        [refs[i] for refs in labels] for i in range(references_per_prediction)
+    ]
     output = scb.corpus_bleu(
         preds,
         transformed_references,
@@ -197,7 +219,12 @@ def wer_and_cer(preds, labels, concatenate_texts, config_name):
     if concatenate_texts:
         wer = compute_measures(labels, preds)["wer"]
 
-        cer = compute_measures(labels, preds, truth_transform=cer_transform, hypothesis_transform=cer_transform)["wer"]
+        cer = compute_measures(
+            labels,
+            preds,
+            truth_transform=cer_transform,
+            hypothesis_transform=cer_transform,
+        )["wer"]
         return {"wer": wer, "cer": cer}
     else:
 
@@ -209,29 +236,48 @@ def wer_and_cer(preds, labels, concatenate_texts, config_name):
                     measures = compute_measures(reference, prediction)
                 elif score_type == "cer":
                     measures = compute_measures(
-                        reference, prediction, truth_transform=cer_transform, hypothesis_transform=cer_transform
+                        reference,
+                        prediction,
+                        truth_transform=cer_transform,
+                        hypothesis_transform=cer_transform,
                     )
-                incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
-                total += measures["substitutions"] + measures["deletions"] + measures["hits"]
+                incorrect += (
+                    measures["substitutions"]
+                    + measures["deletions"]
+                    + measures["insertions"]
+                )
+                total += (
+                    measures["substitutions"] + measures["deletions"] + measures["hits"]
+                )
             return incorrect / total
 
-        return {"wer": compute_score(preds, labels, "wer"), "cer": compute_score(preds, labels, "cer")}
+        return {
+            "wer": compute_score(preds, labels, "wer"),
+            "cer": compute_score(preds, labels, "cer"),
+        }
 
 
 @evaluate.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class XtremeS(evaluate.Metric):
     def _info(self):
         if self.config_name not in _CONFIG_NAMES:
-            raise KeyError(f"You should supply a configuration name selected in {_CONFIG_NAMES}")
+            raise KeyError(
+                f"You should supply a configuration name selected in {_CONFIG_NAMES}"
+            )
 
-        pred_type = "int64" if self.config_name in ["fleurs-lang_id", "minds14"] else "string"
+        pred_type = (
+            "int64" if self.config_name in ["fleurs-lang_id", "minds14"] else "string"
+        )
 
         return evaluate.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
-                {"predictions": datasets.Value(pred_type), "references": datasets.Value(pred_type)}
+                {
+                    "predictions": datasets.Value(pred_type),
+                    "references": datasets.Value(pred_type),
+                }
             ),
             codebase_urls=[],
             reference_urls=[],
@@ -239,7 +285,6 @@ class XtremeS(evaluate.Metric):
         )
 
     def _compute(self, predictions, references, bleu_kwargs=None, wer_kwargs=None):
-
         bleu_kwargs = bleu_kwargs if bleu_kwargs is not None else {}
         wer_kwargs = wer_kwargs if wer_kwargs is not None else {}
 
@@ -266,6 +311,10 @@ class XtremeS(evaluate.Metric):
             )
         elif self.config_name in ["fleurs-asr", "mls", "voxpopuli", "babel"]:
             concatenate_texts = wer_kwargs.pop("concatenate_texts", False)
-            return wer_and_cer(predictions, references, concatenate_texts, self.config_name)
+            return wer_and_cer(
+                predictions, references, concatenate_texts, self.config_name
+            )
         else:
-            raise KeyError(f"You should supply a configuration name selected in {_CONFIG_NAMES}")
+            raise KeyError(
+                f"You should supply a configuration name selected in {_CONFIG_NAMES}"
+            )

@@ -46,12 +46,20 @@ if version.parse(importlib_metadata.version("jiwer")) < version.parse("2.3.0"):
             chars = []
             for sent_idx, sentence in enumerate(inp):
                 chars.extend(self.process_string(sentence))
-                if self.sentence_delimiter is not None and self.sentence_delimiter != "" and sent_idx < len(inp) - 1:
+                if (
+                    self.sentence_delimiter is not None
+                    and self.sentence_delimiter != ""
+                    and sent_idx < len(inp) - 1
+                ):
                     chars.append(self.sentence_delimiter)
             return chars
 
     cer_transform = tr.Compose(
-        [tr.RemoveMultipleSpaces(), tr.Strip(), SentencesToListOfCharacters(SENTENCE_DELIMITER)]
+        [
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            SentencesToListOfCharacters(SENTENCE_DELIMITER),
+        ]
     )
 else:
     cer_transform = tr.Compose(
@@ -153,7 +161,13 @@ class CER(evaluate.Metric):
                 truth_transform=cer_transform,
                 hypothesis_transform=cer_transform,
             )
-            incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
-            total += measures["substitutions"] + measures["deletions"] + measures["hits"]
+            incorrect += (
+                measures["substitutions"]
+                + measures["deletions"]
+                + measures["insertions"]
+            )
+            total += (
+                measures["substitutions"] + measures["deletions"] + measures["hits"]
+            )
 
         return incorrect / total

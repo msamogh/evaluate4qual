@@ -50,13 +50,21 @@ from .utils import slow
 
 
 class DummyTextGenerationPipeline:
-    def __init__(self, prefix="generated", task="text-generation", num_return_sequences=1):
+    def __init__(
+        self, prefix="generated", task="text-generation", num_return_sequences=1
+    ):
         self.task = task
         self.prefix = prefix
         self.num_return_sequences = num_return_sequences
 
     def __call__(self, inputs, **kwargs):
-        return [[{f"{self.prefix}_text": "Lorem ipsum"} for _ in range(self.num_return_sequences)] for _ in inputs]
+        return [
+            [
+                {f"{self.prefix}_text": "Lorem ipsum"}
+                for _ in range(self.num_return_sequences)
+            ]
+            for _ in inputs
+        ]
 
 
 class DummyText2TextGenerationPipeline:
@@ -76,7 +84,10 @@ class DummyTextClassificationPipeline:
     def __call__(self, inputs, **kwargs):
         if self.sleep_time is not None:
             sleep(self.sleep_time)
-        return [{"label": "NEGATIVE"} if i % 2 == 1 else {"label": "POSITIVE"} for i, _ in enumerate(inputs)]
+        return [
+            {"label": "NEGATIVE"} if i % 2 == 1 else {"label": "POSITIVE"}
+            for i, _ in enumerate(inputs)
+        ]
 
 
 class DummyImageClassificationPipeline:
@@ -84,7 +95,10 @@ class DummyImageClassificationPipeline:
         self.task = "image-classification"
 
     def __call__(self, images, **kwargs):
-        return [[{"score": 0.9, "label": "yurt"}, {"score": 0.1, "label": "umbrella"}] for i, _ in enumerate(images)]
+        return [
+            [{"score": 0.9, "label": "yurt"}, {"score": 0.1, "label": "umbrella"}]
+            for i, _ in enumerate(images)
+        ]
 
 
 class DummyQuestionAnsweringPipeline:
@@ -101,7 +115,10 @@ class DummyQuestionAnsweringPipeline:
                 for i in range(len(question))
             ]
         else:
-            return [{"score": 0.95, "start": 31, "end": 39, "answer": "Felix"} for _ in question]
+            return [
+                {"score": 0.95, "start": 31, "end": 39, "answer": "Felix"}
+                for _ in question
+            ]
 
 
 class DummyTokenClassificationPipeline:
@@ -135,18 +152,31 @@ class DummyAudioClassificationPipeline:
         self.task = "audio-classification"
 
     def __call__(self, audio, **kwargs):
-        return [[{"score": 0.9, "label": "yes"}, {"score": 0.1, "label": "no"}] for i, _ in enumerate(audio)]
+        return [
+            [{"score": 0.9, "label": "yes"}, {"score": 0.1, "label": "no"}]
+            for i, _ in enumerate(audio)
+        ]
 
 
 class TestEvaluator(TestCase):
     def setUp(self):
-        self.data = Dataset.from_dict({"label": [1, 0], "text": ["great movie", "horrible movie"]})
+        self.data = Dataset.from_dict(
+            {"label": [1, 0], "text": ["great movie", "horrible movie"]}
+        )
         self.default_ckpt = "hf-internal-testing/tiny-random-bert"
-        self.default_model = AutoModelForSequenceClassification.from_pretrained(self.default_ckpt, num_labels=2)
+        self.default_model = AutoModelForSequenceClassification.from_pretrained(
+            self.default_ckpt, num_labels=2
+        )
         self.default_tokenizer = AutoTokenizer.from_pretrained(self.default_ckpt)
-        self.pipe = pipeline("text-classification", model=self.default_model, tokenizer=self.default_tokenizer)
+        self.pipe = pipeline(
+            "text-classification",
+            model=self.default_model,
+            tokenizer=self.default_tokenizer,
+        )
         self.evaluator = evaluator("text-classification")
-        self.data = Dataset.from_dict({"label": [1, 0], "text": ["great movie", "horrible movie"]})
+        self.data = Dataset.from_dict(
+            {"label": [1, 0], "text": ["great movie", "horrible movie"]}
+        )
         self.label_mapping = {"LABEL_0": 0.0, "LABEL_1": 1.0}
 
     def test_wrong_task(self):
@@ -200,14 +230,20 @@ class TestEvaluator(TestCase):
             # pt accelerator found and pipeline instantiated on CPU
             pt_mock.cuda.is_available.return_value = True
             self.assertRaises(
-                ValueError, Evaluator.check_for_mismatch_in_device_setup, Evaluator._infer_device(), self.pipe
+                ValueError,
+                Evaluator.check_for_mismatch_in_device_setup,
+                Evaluator._infer_device(),
+                self.pipe,
             )
 
             # tf accelerator found and pipeline instantiated on CPU
             pt_available = False
             tf_available = True
             self.assertRaises(
-                ValueError, Evaluator.check_for_mismatch_in_device_setup, Evaluator._infer_device(), self.pipe
+                ValueError,
+                Evaluator.check_for_mismatch_in_device_setup,
+                Evaluator._infer_device(),
+                self.pipe,
             )
 
     def test_pipe_init(self):
@@ -241,7 +277,9 @@ class TestEvaluator(TestCase):
 
 class TestTextClassificationEvaluator(TestCase):
     def setUp(self):
-        self.data = Dataset.from_dict({"label": [1, 0], "text": ["great movie", "horrible movie"]})
+        self.data = Dataset.from_dict(
+            {"label": [1, 0], "text": ["great movie", "horrible movie"]}
+        )
         self.default_model = "lvwerra/distilbert-imdb"
         self.input_column = "text"
         self.label_column = "label"
@@ -306,14 +344,23 @@ class TestTextClassificationEvaluator(TestCase):
         self.assertEqual(results["accuracy"], 1.0)
 
     def test_data_loading(self):
-
         # Test passing in dataset by name with split
         data = self.evaluator.load_data("evaluate/imdb-ci", split="test[:1]")
-        self.evaluator.prepare_data(data=data, input_column="text", label_column="label", second_input_column=None)
+        self.evaluator.prepare_data(
+            data=data,
+            input_column="text",
+            label_column="label",
+            second_input_column=None,
+        )
 
         # Test passing in dataset by name without split and inferring the optimal split
         data = self.evaluator.load_data("evaluate/imdb-ci")
-        self.evaluator.prepare_data(data=data, input_column="text", label_column="label", second_input_column=None)
+        self.evaluator.prepare_data(
+            data=data,
+            input_column="text",
+            label_column="label",
+            second_input_column=None,
+        )
 
         # Test that it chooses the correct one (e.g. imdb only has train and test, but no validation)
         self.assertEqual(data.split, "test")
@@ -347,7 +394,12 @@ class TestTextClassificationEvaluator(TestCase):
         self.assertEqual(results["accuracy"], 1.0)
 
     def test_bootstrap(self):
-        data = Dataset.from_dict({"label": [1, 0, 0], "text": ["great movie", "great movie", "horrible movie"]})
+        data = Dataset.from_dict(
+            {
+                "label": [1, 0, 0],
+                "text": ["great movie", "great movie", "horrible movie"],
+            }
+        )
 
         results = self.evaluator.compute(
             model_or_pipeline=self.pipe,
@@ -359,8 +411,12 @@ class TestTextClassificationEvaluator(TestCase):
             random_state=0,
         )
         self.assertAlmostEqual(results["accuracy"]["score"], 0.666666, 5)
-        self.assertAlmostEqual(results["accuracy"]["confidence_interval"][0], 0.33333, 5)
-        self.assertAlmostEqual(results["accuracy"]["confidence_interval"][1], 0.666666, 5)
+        self.assertAlmostEqual(
+            results["accuracy"]["confidence_interval"][0], 0.33333, 5
+        )
+        self.assertAlmostEqual(
+            results["accuracy"]["confidence_interval"][1], 0.666666, 5
+        )
         self.assertAlmostEqual(results["accuracy"]["standard_error"], 0.22498, 5)
 
     def test_perf(self):
@@ -376,11 +432,24 @@ class TestTextClassificationEvaluator(TestCase):
         )
         self.assertEqual(results["accuracy"], 1.0)
         self.assertAlmostEqual(results["total_time_in_seconds"], 0.1, 1)
-        self.assertAlmostEqual(results["samples_per_second"], len(self.data) / results["total_time_in_seconds"], 5)
-        self.assertAlmostEqual(results["latency_in_seconds"], results["total_time_in_seconds"] / len(self.data), 5)
+        self.assertAlmostEqual(
+            results["samples_per_second"],
+            len(self.data) / results["total_time_in_seconds"],
+            5,
+        )
+        self.assertAlmostEqual(
+            results["latency_in_seconds"],
+            results["total_time_in_seconds"] / len(self.data),
+            5,
+        )
 
     def test_bootstrap_and_perf(self):
-        data = Dataset.from_dict({"label": [1, 0, 0], "text": ["great movie", "great movie", "horrible movie"]})
+        data = Dataset.from_dict(
+            {
+                "label": [1, 0, 0],
+                "text": ["great movie", "great movie", "horrible movie"],
+            }
+        )
 
         results = self.evaluator.compute(
             model_or_pipeline=self.perf_pipe,
@@ -394,12 +463,24 @@ class TestTextClassificationEvaluator(TestCase):
             random_state=0,
         )
         self.assertAlmostEqual(results["accuracy"]["score"], 0.666666, 5)
-        self.assertAlmostEqual(results["accuracy"]["confidence_interval"][0], 0.333333, 5)
-        self.assertAlmostEqual(results["accuracy"]["confidence_interval"][1], 0.666666, 5)
+        self.assertAlmostEqual(
+            results["accuracy"]["confidence_interval"][0], 0.333333, 5
+        )
+        self.assertAlmostEqual(
+            results["accuracy"]["confidence_interval"][1], 0.666666, 5
+        )
         self.assertAlmostEqual(results["accuracy"]["standard_error"], 0.22498285, 5)
         self.assertAlmostEqual(results["total_time_in_seconds"], 0.1, 1)
-        self.assertAlmostEqual(results["samples_per_second"], len(data) / results["total_time_in_seconds"], 5)
-        self.assertAlmostEqual(results["latency_in_seconds"], results["total_time_in_seconds"] / len(data), 5)
+        self.assertAlmostEqual(
+            results["samples_per_second"],
+            len(data) / results["total_time_in_seconds"],
+            5,
+        )
+        self.assertAlmostEqual(
+            results["latency_in_seconds"],
+            results["total_time_in_seconds"] / len(data),
+            5,
+        )
 
 
 class TestTextClassificationEvaluatorTwoColumns(TestCase):
@@ -464,7 +545,10 @@ class TestImageClassificationEvaluator(TestCase):
         self.data = Dataset.from_dict(
             {
                 "label": [2, 2],
-                "image": [Image.new("RGB", (500, 500), (255, 255, 255)), Image.new("RGB", (500, 500), (170, 95, 170))],
+                "image": [
+                    Image.new("RGB", (500, 500), (255, 255, 255)),
+                    Image.new("RGB", (500, 500), (170, 95, 170)),
+                ],
             }
         )
         self.default_model = "lysandre/tiny-vit-random"
@@ -546,16 +630,28 @@ class TestQuestionAnsweringEvaluator(TestCase):
         self.data = Dataset.from_dict(
             {
                 "id": ["56be4db0acb8001400a502ec", "56be4db0acb8001400a502ed"],
-                "context": ["My name is Felix and I love cookies!", "Misa name is Felix and misa love cookies!"],
-                "answers": [{"text": ["Felix"], "answer_start": [11]}, {"text": ["Felix"], "answer_start": [13]}],
+                "context": [
+                    "My name is Felix and I love cookies!",
+                    "Misa name is Felix and misa love cookies!",
+                ],
+                "answers": [
+                    {"text": ["Felix"], "answer_start": [11]},
+                    {"text": ["Felix"], "answer_start": [13]},
+                ],
                 "question": ["What is my name?", "What is my name?"],
             }
         )
         self.data_v2 = Dataset.from_dict(
             {
                 "id": ["56be4db0acb8001400a502ec", "56be4db0acb8001400a502ed"],
-                "context": ["My name is Felix and I love cookies!", "Let's explore the city!"],
-                "answers": [{"text": ["Felix"], "answer_start": [11]}, {"text": [], "answer_start": []}],
+                "context": [
+                    "My name is Felix and I love cookies!",
+                    "Let's explore the city!",
+                ],
+                "answers": [
+                    {"text": ["Felix"], "answer_start": [11]},
+                    {"text": [], "answer_start": []},
+                ],
                 "question": ["What is my name?", "What is my name?"],
             }
         )
@@ -622,7 +718,8 @@ class TestQuestionAnsweringEvaluator(TestCase):
             metric="squad_v2",
         )
         self.assertDictEqual(
-            {key: results[key] for key in ["HasAns_f1", "NoAns_f1"]}, {"HasAns_f1": 100.0, "NoAns_f1": 100.0}
+            {key: results[key] for key in ["HasAns_f1", "NoAns_f1"]},
+            {"HasAns_f1": 100.0, "NoAns_f1": 100.0},
         )
 
     @slow
@@ -640,20 +737,29 @@ class TestQuestionAnsweringEvaluator(TestCase):
             metric="squad_v2",
         )
         self.assertDictEqual(
-            {key: results[key] for key in ["HasAns_f1", "NoAns_f1"]}, {"HasAns_f1": 100.0, "NoAns_f1": 0.0}
+            {key: results[key] for key in ["HasAns_f1", "NoAns_f1"]},
+            {"HasAns_f1": 100.0, "NoAns_f1": 0.0},
         )
 
     def test_data_loading(self):
         # Test passing in dataset by name with data_split
         data = self.evaluator.load_data("evaluate/squad-ci", split="validation[:1]")
         self.evaluator.prepare_data(
-            data=data, question_column="question", context_column="context", id_column="id", label_column="answers"
+            data=data,
+            question_column="question",
+            context_column="context",
+            id_column="id",
+            label_column="answers",
         )
 
         # Test passing in dataset by name without data_split and inferring the optimal split
         data = self.evaluator.load_data("evaluate/squad-ci")
         self.evaluator.prepare_data(
-            data=data, question_column="question", context_column="context", id_column="id", label_column="answers"
+            data=data,
+            question_column="question",
+            context_column="context",
+            id_column="id",
+            label_column="answers",
         )
 
         # Test that it chooses the correct one (e.g. squad only has train and validation, but no test)
@@ -818,7 +924,9 @@ class TestTokenClassificationEvaluator(TestCase):
             ]
         ]
         predictions = task_evaluator.predictions_processor(predictions, words, join_by)
-        self.assertListEqual(predictions["predictions"][0], ["B-LOC", "I-LOC", "O", "O", "B-LOC", "O"])
+        self.assertListEqual(
+            predictions["predictions"][0], ["B-LOC", "I-LOC", "O", "O", "B-LOC", "O"]
+        )
 
         # non-aligned start and words
         predictions = [
@@ -832,7 +940,9 @@ class TestTokenClassificationEvaluator(TestCase):
             ]
         ]
         predictions = task_evaluator.predictions_processor(predictions, words, join_by)
-        self.assertListEqual(predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"])
+        self.assertListEqual(
+            predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"]
+        )
 
         # non-aligned start and words
         predictions = [
@@ -846,7 +956,9 @@ class TestTokenClassificationEvaluator(TestCase):
             ]
         ]
         predictions = task_evaluator.predictions_processor(predictions, words, join_by)
-        self.assertListEqual(predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"])
+        self.assertListEqual(
+            predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"]
+        )
 
         # non-aligned start and words
         predictions = [
@@ -859,7 +971,9 @@ class TestTokenClassificationEvaluator(TestCase):
             ]
         ]
         predictions = task_evaluator.predictions_processor(predictions, words, join_by)
-        self.assertListEqual(predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"])
+        self.assertListEqual(
+            predictions["predictions"][0], ["B-LOC", "O", "O", "O", "B-LOC", "O"]
+        )
 
 
 class TestTextGenerationEvaluator(TestCase):
@@ -971,7 +1085,9 @@ class TestText2TextGenerationEvaluator(TestCase):
         self.assertEqual(results["rouge1"], 1.0)
 
     def test_translation(self):
-        pipe = DummyText2TextGenerationPipeline(task="translation", prefix="translation")
+        pipe = DummyText2TextGenerationPipeline(
+            task="translation", prefix="translation"
+        )
         e = evaluator("translation")
 
         results = e.compute(
@@ -1045,13 +1161,26 @@ class TestAutomaticSpeechRecognitionEvaluator(TestCase):
 class TestAudioClassificationEvaluator(TestCase):
     def setUp(self):
         self.data = Dataset.from_dict(
-            {"file": ["https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac"], "label": [11]}
+            {
+                "file": [
+                    "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac"
+                ],
+                "label": [11],
+            }
         )
         self.raw_data = Dataset.from_dict(
             {
                 "audio": [
                     np.array(
-                        [-0.00048828, -0.00018311, -0.00137329, 0.00079346, 0.00091553, 0.00085449], dtype=np.float32
+                        [
+                            -0.00048828,
+                            -0.00018311,
+                            -0.00137329,
+                            0.00079346,
+                            0.00091553,
+                            0.00085449,
+                        ],
+                        dtype=np.float32,
                     )
                 ],
                 "label": [11],
@@ -1072,7 +1201,10 @@ class TestAudioClassificationEvaluator(TestCase):
 
     def test_raw_pipe_init(self):
         results = self.evaluator.compute(
-            model_or_pipeline=self.pipe, data=self.raw_data, label_mapping=self.label_mapping, input_column="audio"
+            model_or_pipeline=self.pipe,
+            data=self.raw_data,
+            label_mapping=self.label_mapping,
+            input_column="audio",
         )
         self.assertEqual(results["accuracy"], 0)
 

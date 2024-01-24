@@ -22,14 +22,22 @@ OPTS = None
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("Official evaluation script for SQuAD version 2.0.")
+    parser = argparse.ArgumentParser(
+        "Official evaluation script for SQuAD version 2.0."
+    )
     parser.add_argument("data_file", metavar="data.json", help="Input data JSON file.")
     parser.add_argument("pred_file", metavar="pred.json", help="Model predictions.")
     parser.add_argument(
-        "--out-file", "-o", metavar="eval.json", help="Write accuracy metrics to file (default is stdout)."
+        "--out-file",
+        "-o",
+        metavar="eval.json",
+        help="Write accuracy metrics to file (default is stdout).",
     )
     parser.add_argument(
-        "--na-prob-file", "-n", metavar="na_prob.json", help="Model estimates of probability of no answer."
+        "--na-prob-file",
+        "-n",
+        metavar="na_prob.json",
+        help="Model estimates of probability of no answer.",
     )
     parser.add_argument(
         "--na-prob-thresh",
@@ -39,7 +47,11 @@ def parse_args():
         help='Predict "" if no-answer probability exceeds this (default = 1.0).',
     )
     parser.add_argument(
-        "--out-image-dir", "-p", metavar="out_images", default=None, help="Save precision-recall curves to directory."
+        "--out-image-dir",
+        "-p",
+        metavar="out_images",
+        default=None,
+        help="Save precision-recall curves to directory.",
     )
     parser.add_argument("--verbose", "-v", action="store_true")
     if len(sys.argv) == 1:
@@ -172,7 +184,9 @@ def plot_pr_curve(precisions, recalls, out_image, title):
     plt.clf()
 
 
-def make_precision_recall_eval(scores, na_probs, num_true_pos, qid_to_has_ans, out_image=None, title=None):
+def make_precision_recall_eval(
+    scores, na_probs, num_true_pos, qid_to_has_ans, out_image=None, title=None
+):
     qid_list = sorted(na_probs, key=lambda k: na_probs[k])
     true_pos = 0.0
     cur_p = 1.0
@@ -195,7 +209,9 @@ def make_precision_recall_eval(scores, na_probs, num_true_pos, qid_to_has_ans, o
     return {"ap": 100.0 * avg_prec}
 
 
-def run_precision_recall_analysis(main_eval, exact_raw, f1_raw, na_probs, qid_to_has_ans, out_image_dir):
+def run_precision_recall_analysis(
+    main_eval, exact_raw, f1_raw, na_probs, qid_to_has_ans, out_image_dir
+):
     if out_image_dir and not os.path.exists(out_image_dir):
         os.makedirs(out_image_dir)
     num_true_pos = sum(1 for v in qid_to_has_ans.values() if v)
@@ -268,7 +284,9 @@ def find_best_thresh(preds, scores, na_probs, qid_to_has_ans):
 
 
 def find_all_best_thresh(main_eval, preds, exact_raw, f1_raw, na_probs, qid_to_has_ans):
-    best_exact, exact_thresh = find_best_thresh(preds, exact_raw, na_probs, qid_to_has_ans)
+    best_exact, exact_thresh = find_best_thresh(
+        preds, exact_raw, na_probs, qid_to_has_ans
+    )
     best_f1, f1_thresh = find_best_thresh(preds, f1_raw, na_probs, qid_to_has_ans)
     main_eval["best_exact"] = best_exact
     main_eval["best_exact_thresh"] = exact_thresh
@@ -291,8 +309,12 @@ def main():
     has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]
     no_ans_qids = [k for k, v in qid_to_has_ans.items() if not v]
     exact_raw, f1_raw = get_raw_scores(dataset, preds)
-    exact_thresh = apply_no_ans_threshold(exact_raw, na_probs, qid_to_has_ans, OPTS.na_prob_thresh)
-    f1_thresh = apply_no_ans_threshold(f1_raw, na_probs, qid_to_has_ans, OPTS.na_prob_thresh)
+    exact_thresh = apply_no_ans_threshold(
+        exact_raw, na_probs, qid_to_has_ans, OPTS.na_prob_thresh
+    )
+    f1_thresh = apply_no_ans_threshold(
+        f1_raw, na_probs, qid_to_has_ans, OPTS.na_prob_thresh
+    )
     out_eval = make_eval_dict(exact_thresh, f1_thresh)
     if has_ans_qids:
         has_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=has_ans_qids)
@@ -301,9 +323,13 @@ def main():
         no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
         merge_eval(out_eval, no_ans_eval, "NoAns")
     if OPTS.na_prob_file:
-        find_all_best_thresh(out_eval, preds, exact_raw, f1_raw, na_probs, qid_to_has_ans)
+        find_all_best_thresh(
+            out_eval, preds, exact_raw, f1_raw, na_probs, qid_to_has_ans
+        )
     if OPTS.na_prob_file and OPTS.out_image_dir:
-        run_precision_recall_analysis(out_eval, exact_raw, f1_raw, na_probs, qid_to_has_ans, OPTS.out_image_dir)
+        run_precision_recall_analysis(
+            out_eval, exact_raw, f1_raw, na_probs, qid_to_has_ans, OPTS.out_image_dir
+        )
         histogram_na_prob(na_probs, has_ans_qids, OPTS.out_image_dir, "hasAns")
         histogram_na_prob(na_probs, no_ans_qids, OPTS.out_image_dir, "noAns")
     if OPTS.out_file:

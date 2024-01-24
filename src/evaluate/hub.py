@@ -81,12 +81,16 @@ def push_to_hub(
     ... )
     ```"""
     if task_type not in HF_HUB_ALLOWED_TASKS:
-        raise ValueError(f"Task type not supported. Task has to be one of {HF_HUB_ALLOWED_TASKS}")
+        raise ValueError(
+            f"Task type not supported. Task has to be one of {HF_HUB_ALLOWED_TASKS}"
+        )
 
     try:
         dataset_info(dataset_type)
     except requests.exceptions.HTTPError:
-        logger.warning(f"Dataset {dataset_type} not found on the Hub at hf.co/datasets/{dataset_type}")
+        logger.warning(
+            f"Dataset {dataset_type} not found on the Hub at hf.co/datasets/{dataset_type}"
+        )
 
     try:
         model_info(model_id)

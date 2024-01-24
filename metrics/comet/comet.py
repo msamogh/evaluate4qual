@@ -127,7 +127,6 @@ Examples:
 @evaluate.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class COMET(evaluate.Metric):
     def _info(self):
-
         return evaluate.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
@@ -152,11 +151,17 @@ class COMET(evaluate.Metric):
     def _download_and_prepare(self, dl_manager):
         if self.config_name == "default":
             if version.parse(comet.__version__) >= version.parse("2.0.0"):
-                self.scorer = comet.load_from_checkpoint(comet.download_model("Unbabel/wmt22-comet-da"))
+                self.scorer = comet.load_from_checkpoint(
+                    comet.download_model("Unbabel/wmt22-comet-da")
+                )
             else:
-                self.scorer = comet.load_from_checkpoint(comet.download_model("wmt20-comet-da"))
+                self.scorer = comet.load_from_checkpoint(
+                    comet.download_model("wmt20-comet-da")
+                )
         else:
-            self.scorer = comet.load_from_checkpoint(comet.download_model(self.config_name))
+            self.scorer = comet.load_from_checkpoint(
+                comet.download_model(self.config_name)
+            )
 
     def _compute(self, sources, predictions, references, gpus=None, progress_bar=False):
         if gpus is None:
@@ -167,5 +172,7 @@ class COMET(evaluate.Metric):
             output = self.scorer.predict(data, gpus=gpus, progress_bar=progress_bar)
             scores, mean_score = output.scores, output.system_score
         else:
-            scores, mean_score = self.scorer.predict(data, gpus=gpus, progress_bar=progress_bar)
+            scores, mean_score = self.scorer.predict(
+                data, gpus=gpus, progress_bar=progress_bar
+            )
         return {"mean_score": mean_score, "scores": scores}

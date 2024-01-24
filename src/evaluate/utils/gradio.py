@@ -28,7 +28,9 @@ def infer_gradio_input_types(feature_types):
     for feature_type in feature_types:
         input_type = "json"
         if isinstance(feature_type, Value):
-            if feature_type.dtype.startswith("int") or feature_type.dtype.startswith("float"):
+            if feature_type.dtype.startswith("int") or feature_type.dtype.startswith(
+                "float"
+            ):
                 input_type = "number"
             elif feature_type.dtype == "string":
                 input_type = "str"
@@ -60,9 +62,13 @@ def parse_gradio_data(data, input_types):
     data.dropna(inplace=True)
     for feature_name, input_type in zip(data, input_types):
         if input_type == "json":
-            metric_inputs[feature_name] = [json.loads(d) for d in data[feature_name].to_list()]
+            metric_inputs[feature_name] = [
+                json.loads(d) for d in data[feature_name].to_list()
+            ]
         elif input_type == "str":
-            metric_inputs[feature_name] = [d.strip('"') for d in data[feature_name].to_list()]
+            metric_inputs[feature_name] = [
+                d.strip('"') for d in data[feature_name].to_list()
+            ]
         else:
             metric_inputs[feature_name] = data[feature_name]
     return metric_inputs
@@ -82,7 +88,9 @@ def parse_test_cases(test_cases, feature_names, input_types):
             if input_type == "json":
                 parsed_cases.append([str(element) for element in test_case[feat]])
             elif input_type == "str":
-                parsed_cases.append(['"' + element + '"' for element in test_case[feat]])
+                parsed_cases.append(
+                    ['"' + element + '"' for element in test_case[feat]]
+                )
             else:
                 parsed_cases.append(test_case[feat])
         examples.append([list(i) for i in zip(*parsed_cases)])
@@ -95,7 +103,9 @@ def launch_gradio_widget(metric):
     try:
         import gradio as gr
     except ImportError as error:
-        logger.error("To create a metric widget with Gradio make sure gradio is installed.")
+        logger.error(
+            "To create a metric widget with Gradio make sure gradio is installed."
+        )
         raise error
 
     local_path = Path(sys.path[0])
@@ -119,7 +129,8 @@ def launch_gradio_widget(metric):
         ),
         outputs=gr.outputs.Textbox(label=metric.name),
         description=(
-            metric.info.description + "\nIf this is a text-based metric, make sure to wrap you input in double quotes."
+            metric.info.description
+            + "\nIf this is a text-based metric, make sure to wrap you input in double quotes."
             " Alternatively you can use a JSON-formatted list as input."
         ),
         title=f"Metric: {metric.name}",

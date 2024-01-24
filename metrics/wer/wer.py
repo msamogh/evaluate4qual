@@ -101,6 +101,12 @@ class WER(evaluate.Metric):
             total = 0
             for prediction, reference in zip(predictions, references):
                 measures = compute_measures(reference, prediction)
-                incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
-                total += measures["substitutions"] + measures["deletions"] + measures["hits"]
+                incorrect += (
+                    measures["substitutions"]
+                    + measures["deletions"]
+                    + measures["insertions"]
+                )
+                total += (
+                    measures["substitutions"] + measures["deletions"] + measures["hits"]
+                )
             return incorrect / total

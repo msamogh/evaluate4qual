@@ -200,7 +200,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         if not isinstance(num_process, int) or num_process <= process_id:
             raise ValueError("'num_process' should be a number greater than process_id")
         if keep_in_memory and num_process != 1:
-            raise ValueError("Using 'keep_in_memory' is not possible in distributed setting (num_process > 1).")
+            raise ValueError(
+                "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
+            )
 
         self.num_process = num_process
         self.process_id = process_id
@@ -271,7 +273,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
 
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
         """Create a new cache file. If the default cache file is used, we generated a new hash."""
-        file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
+        file_path = os.path.join(
+            self.data_dir,
+            f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow",
+        )
         filelock = None
         for i in range(self.max_concurrent_cache_files):
             filelock = FileLock(file_path + ".lock")
@@ -295,7 +300,8 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                 # In other cases (allow to find new file name + not yet at max num of attempts) we can try to sample a new hashing name.
                 file_uuid = str(uuid.uuid4())
                 file_path = os.path.join(
-                    self.data_dir, f"{self.experiment_id}-{file_uuid}-{self.num_process}-{self.process_id}.arrow"
+                    self.data_dir,
+                    f"{self.experiment_id}-{file_uuid}-{self.num_process}-{self.process_id}.arrow",
                 )
             else:
                 break
@@ -315,7 +321,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
             file_paths = [self.cache_file_name]
         else:
             file_paths = [
-                os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow")
+                os.path.join(
+                    self.data_dir,
+                    f"{self.experiment_id}-{self.num_process}-{process_id}.arrow",
+                )
                 for process_id in range(self.num_process)
             ]
 
@@ -339,7 +348,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
 
     def _check_all_processes_locks(self):
         expected_lock_file_names = [
-            os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock")
+            os.path.join(
+                self.data_dir,
+                f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock",
+            )
             for process_id in range(self.num_process)
         ]
         for expected_lock_file_name in expected_lock_file_names:
@@ -354,7 +366,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                 nofilelock.release()
 
     def _check_rendez_vous(self):
-        expected_lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-0.arrow.lock")
+        expected_lock_file_name = os.path.join(
+            self.data_dir, f"{self.experiment_id}-{self.num_process}-0.arrow.lock"
+        )
         nofilelock = FileFreeLock(expected_lock_file_name)
         try:
             nofilelock.acquire(timeout=self.timeout)
@@ -364,12 +378,16 @@ class EvaluationModule(EvaluationModuleInfoMixin):
             ) from None
         else:
             nofilelock.release()
-        lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+        lock_file_name = os.path.join(
+            self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock"
+        )
         rendez_vous_lock = FileLock(lock_file_name)
         try:
             rendez_vous_lock.acquire(timeout=self.timeout)
         except Timeout:
-            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.") from None
+            raise ValueError(
+                f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}."
+            ) from None
         else:
             rendez_vous_lock.release()
 
@@ -386,7 +404,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
 
         if self.keep_in_memory:
             # Read the predictions and references
-            reader = ArrowReader(path=self.data_dir, info=DatasetInfo(features=self.selected_feature_format))
+            reader = ArrowReader(
+                path=self.data_dir,
+                info=DatasetInfo(features=self.selected_feature_format),
+            )
             self.data = Dataset.from_buffer(self.buf_writer.getvalue())
 
         elif self.process_id == 0:
@@ -395,8 +416,12 @@ class EvaluationModule(EvaluationModuleInfoMixin):
 
             # Read the predictions and references
             try:
-                reader = ArrowReader(path="", info=DatasetInfo(features=self.selected_feature_format))
-                self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
+                reader = ArrowReader(
+                    path="", info=DatasetInfo(features=self.selected_feature_format)
+                )
+                self.data = Dataset(
+                    **reader.read_files([{"filename": f} for f in file_paths])
+                )
             except FileNotFoundError:
                 raise ValueError(
                     "Error in finalize: another evaluation module instance is already using the local cache file. "
@@ -435,7 +460,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         """
         all_kwargs = {"predictions": predictions, "references": references, **kwargs}
         if predictions is None and references is None:
-            missing_kwargs = {k: None for k in self._feature_names() if k not in all_kwargs}
+            missing_kwargs = {
+                k: None for k in self._feature_names() if k not in all_kwargs
+            }
             all_kwargs.update(missing_kwargs)
         else:
             missing_inputs = [k for k in self._feature_names() if k not in all_kwargs]
@@ -443,8 +470,12 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                 raise ValueError(
                     f"Evaluation module inputs are missing: {missing_inputs}. All required inputs are {list(self._feature_names())}"
                 )
-        inputs = {input_name: all_kwargs[input_name] for input_name in self._feature_names()}
-        compute_kwargs = {k: kwargs[k] for k in kwargs if k not in self._feature_names()}
+        inputs = {
+            input_name: all_kwargs[input_name] for input_name in self._feature_names()
+        }
+        compute_kwargs = {
+            k: kwargs[k] for k in kwargs if k not in self._feature_names()
+        }
 
         if any(v is not None for v in inputs.values()):
             self.add_batch(**inputs)
@@ -457,7 +488,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         if self.process_id == 0:
             self.data.set_format(type=self.info.format)
 
-            inputs = {input_name: self.data[input_name] for input_name in self._feature_names()}
+            inputs = {
+                input_name: self.data[input_name]
+                for input_name in self._feature_names()
+            }
             with temp_seed(self.seed):
                 output = self._compute(**inputs, **compute_kwargs)
 
@@ -467,7 +501,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                 self.data = None
             else:
                 # Release locks and delete all the cache files. Process 0 is released last.
-                for filelock, file_path in reversed(list(zip(self.filelocks, self.file_paths))):
+                for filelock, file_path in reversed(
+                    list(zip(self.filelocks, self.file_paths))
+                ):
                     logger.info(f"Removing {file_path}")
                     del self.data
                     self.data = None
@@ -498,7 +534,11 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         ...     accuracy.add_batch(references=refs, predictions=preds)
         ```
         """
-        bad_inputs = [input_name for input_name in kwargs if input_name not in self._feature_names()]
+        bad_inputs = [
+            input_name
+            for input_name in kwargs
+            if input_name not in self._feature_names()
+        ]
         if bad_inputs:
             raise ValueError(
                 f"Bad inputs for evaluation module: {bad_inputs}. All required inputs are {list(self._feature_names())}"
@@ -511,16 +551,16 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         try:
             for key, column in batch.items():
                 if len(column) > 0:
-                    self._enforce_nested_string_type(self.selected_feature_format[key], column[0])
+                    self._enforce_nested_string_type(
+                        self.selected_feature_format[key], column[0]
+                    )
             batch = self.selected_feature_format.encode_batch(batch)
             self.writer.write_batch(batch)
         except (pa.ArrowInvalid, TypeError):
             if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
                 col0 = next(iter(batch))
                 bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
-                error_msg = (
-                    f"Mismatch in the number of {col0} ({len(batch[col0])}) and {bad_col} ({len(batch[bad_col])})"
-                )
+                error_msg = f"Mismatch in the number of {col0} ({len(batch[col0])}) and {bad_col} ({len(batch[bad_col])})"
             elif set(self.selected_feature_format) != {"references", "predictions"}:
                 error_msg = (
                     f"Module inputs don't match the expected format.\n"
@@ -557,13 +597,19 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         >>> accuracy.add(references=[0,1], predictions=[1,0])
         ```
         """
-        bad_inputs = [input_name for input_name in kwargs if input_name not in self._feature_names()]
+        bad_inputs = [
+            input_name
+            for input_name in kwargs
+            if input_name not in self._feature_names()
+        ]
         if bad_inputs:
             raise ValueError(
                 f"Bad inputs for evaluation module: {bad_inputs}. All required inputs are {list(self._feature_names())}"
             )
         example = {"predictions": prediction, "references": reference, **kwargs}
-        example = {input_name: example[input_name] for input_name in self._feature_names()}
+        example = {
+            input_name: example[input_name] for input_name in self._feature_names()
+        }
         if self.writer is None:
             self.selected_feature_format = self._infer_feature_from_example(example)
             self._init_writer()
@@ -601,7 +647,12 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                     return features
                 except (ValueError, TypeError):
                     continue
-        feature_strings = "\n".join([f"Feature option {i}: {feature}" for i, feature in enumerate(self.features)])
+        feature_strings = "\n".join(
+            [
+                f"Feature option {i}: {feature}"
+                for i, feature in enumerate(self.features)
+            ]
+        )
         error_msg = (
             f"Predictions and/or references don't match the expected format.\n"
             f"Expected format:\n{feature_strings},\n"
@@ -620,7 +671,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
     def _init_writer(self, timeout=1):
         if self.num_process > 1:
             if self.process_id == 0:
-                file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+                file_path = os.path.join(
+                    self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock"
+                )
                 self.rendez_vous_lock = FileLock(file_path)
                 try:
                     self.rendez_vous_lock.acquire(timeout=timeout)
@@ -634,7 +687,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
             self.writer = ArrowWriter(
-                features=self.selected_feature_format, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
+                features=self.selected_feature_format,
+                stream=self.buf_writer,
+                writer_batch_size=self.writer_batch_size,
             )
         else:
             self.buf_writer = None
@@ -695,7 +750,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                 download_config.force_download = False
 
             dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.data_dir
+                dataset_name=self.name,
+                download_config=download_config,
+                data_dir=self.data_dir,
             )
 
         self._download_and_prepare(dl_manager)
@@ -711,7 +768,9 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         """
         return None
 
-    def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
+    def _compute(
+        self, *, predictions=None, references=None, **kwargs
+    ) -> Dict[str, Any]:
         """This method defines the common API for all the evaluation module in the library"""
         raise NotImplementedError
 
@@ -732,7 +791,10 @@ class EvaluationModule(EvaluationModuleInfoMixin):
         """
         # Nested structures: we allow dict, list, tuples, sequences
         if isinstance(schema, dict):
-            return [self._enforce_nested_string_type(sub_schema, o) for k, (sub_schema, o) in zip_dict(schema, obj)]
+            return [
+                self._enforce_nested_string_type(sub_schema, o)
+                for k, (sub_schema, o) in zip_dict(schema, obj)
+            ]
 
         elif isinstance(schema, (list, tuple)):
             sub_schema = schema[0]
@@ -744,8 +806,12 @@ class EvaluationModule(EvaluationModuleInfoMixin):
                     # obj is a list of dict
                     for k, dict_tuples in zip_dict(schema.feature, *obj):
                         for sub_obj in dict_tuples[1:]:
-                            if _check_non_null_non_empty_recursive(sub_obj, dict_tuples[0]):
-                                self._enforce_nested_string_type(dict_tuples[0], sub_obj)
+                            if _check_non_null_non_empty_recursive(
+                                sub_obj, dict_tuples[0]
+                            ):
+                                self._enforce_nested_string_type(
+                                    dict_tuples[0], sub_obj
+                                )
                                 break
                     return None
                 else:
@@ -764,10 +830,14 @@ class EvaluationModule(EvaluationModuleInfoMixin):
             else:
                 if len(obj) > 0:
                     for first_elmt in obj:
-                        if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
+                        if _check_non_null_non_empty_recursive(
+                            first_elmt, schema.feature
+                        ):
                             break
                     if not isinstance(first_elmt, list):
-                        return self._enforce_nested_string_type(schema.feature, first_elmt)
+                        return self._enforce_nested_string_type(
+                            schema.feature, first_elmt
+                        )
 
         elif isinstance(schema, Value):
             if pa.types.is_string(schema.pa_type) and not isinstance(obj, str):
@@ -883,7 +953,9 @@ class CombinedEvaluations:
         self.evaluation_modules = loaded_modules
 
         if self.evaluation_module_names is None:
-            self.evaluation_module_names = [module.name for module in self.evaluation_modules]
+            self.evaluation_module_names = [
+                module.name for module in self.evaluation_modules
+            ]
 
         self.force_prefix = force_prefix
 
@@ -909,7 +981,10 @@ class CombinedEvaluations:
         """
         for evaluation_module in self.evaluation_modules:
             batch = {"predictions": prediction, "references": reference, **kwargs}
-            batch = {input_name: batch[input_name] for input_name in evaluation_module._feature_names()}
+            batch = {
+                input_name: batch[input_name]
+                for input_name in evaluation_module._feature_names()
+            }
             evaluation_module.add(**batch)
 
     def add_batch(self, predictions=None, references=None, **kwargs):
@@ -933,7 +1008,10 @@ class CombinedEvaluations:
         """
         for evaluation_module in self.evaluation_modules:
             batch = {"predictions": predictions, "references": references, **kwargs}
-            batch = {input_name: batch[input_name] for input_name in evaluation_module._feature_names()}
+            batch = {
+                input_name: batch[input_name]
+                for input_name in evaluation_module._feature_names()
+            }
             evaluation_module.add_batch(**batch)
 
     def compute(self, predictions=None, references=None, **kwargs):
@@ -978,10 +1056,16 @@ class CombinedEvaluations:
     def _merge_results(self, results):
         merged_results = {}
         results_keys = list(itertools.chain.from_iterable([r.keys() for r in results]))
-        duplicate_keys = {item for item, count in collections.Counter(results_keys).items() if count > 1}
+        duplicate_keys = {
+            item
+            for item, count in collections.Counter(results_keys).items()
+            if count > 1
+        }
 
         duplicate_names = [
-            item for item, count in collections.Counter(self.evaluation_module_names).items() if count > 1
+            item
+            for item, count in collections.Counter(self.evaluation_module_names).items()
+            if count > 1
         ]
         duplicate_counter = {name: 0 for name in duplicate_names}
 
@@ -990,7 +1074,9 @@ class CombinedEvaluations:
                 if k not in duplicate_keys and not self.force_prefix:
                     merged_results[f"{k}"] = v
                 elif module_name in duplicate_counter:
-                    merged_results[f"{module_name}_{duplicate_counter[module_name]}_{k}"] = v
+                    merged_results[
+                        f"{module_name}_{duplicate_counter[module_name]}_{k}"
+                    ] = v
                 else:
                     merged_results[f"{module_name}_{k}"] = v
 

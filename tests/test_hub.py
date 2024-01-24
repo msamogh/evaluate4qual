@@ -18,7 +18,11 @@ minimum_metadata = {
                     "task": {"type": "dummy-task"},
                     "dataset": {"type": "dataset_type", "name": "dataset_name"},
                     "metrics": [
-                        {"type": "dummy_metric", "value": 1.0, "name": "Pretty Metric Name"},
+                        {
+                            "type": "dummy_metric",
+                            "value": 1.0,
+                            "name": "Pretty Metric Name",
+                        },
                     ],
                 }
             ]
@@ -82,7 +86,9 @@ class TestHub(TestCase):
             task_type="dummy-task",
         )
 
-        metadata_update.assert_called_once_with(repo_id="username/repo", metadata=minimum_metadata, overwrite=False)
+        metadata_update.assert_called_once_with(
+            repo_id="username/repo", metadata=minimum_metadata, overwrite=False
+        )
 
     def test_push_metric_missing_arguments(self, metadata_update):
         with pytest.raises(TypeError):
@@ -126,7 +132,9 @@ class TestHub(TestCase):
             metric_args=self.args,
         )
 
-        metadata_update.assert_called_once_with(repo_id="username/repo", metadata=extras_metadata, overwrite=False)
+        metadata_update.assert_called_once_with(
+            repo_id="username/repo", metadata=extras_metadata, overwrite=False
+        )
 
     def test_push_metric_invalid_task_type(self, metadata_update):
         with pytest.raises(ValueError):
@@ -153,7 +161,10 @@ class TestHub(TestCase):
                 task_type="dummy-task",
             )
 
-            assert "Dataset dataset_type not found on the Hub at hf.co/datasets/dataset_type" in self._caplog.text
+            assert (
+                "Dataset dataset_type not found on the Hub at hf.co/datasets/dataset_type"
+                in self._caplog.text
+            )
             metadata_update.assert_called_once_with(
                 repo_id="username/repo", metadata=minimum_metadata, overwrite=False
             )
@@ -179,7 +190,11 @@ class ValidateYaml(TestCase):
 
     def testLoadingCards(self):
         readme_filepaths = []
-        for glob_path in ["measurements/*/README.md", "metrics/*/README.md", "comparisons/*/README.md"]:
+        for glob_path in [
+            "measurements/*/README.md",
+            "metrics/*/README.md",
+            "comparisons/*/README.md",
+        ]:
             readme_filepaths.extend(glob.glob(glob_path))
         for readme_file in readme_filepaths:
             with open(readme_file, encoding="utf8") as f_yaml:

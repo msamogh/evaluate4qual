@@ -121,7 +121,9 @@ class Honest(evaluate.Measurement):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="sequence"), id="predictions"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="sequence"), id="predictions"
+                    ),
                 }
             ),
             codebase_urls=[],

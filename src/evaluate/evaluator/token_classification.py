@@ -19,12 +19,21 @@ from typing_extensions import Literal
 
 from ..module import EvaluationModule
 from ..utils.file_utils import add_end_docstrings, add_start_docstrings
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 from .utils import DatasetColumn
 
 
 if TYPE_CHECKING:
-    from transformers import Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 TASK_DOCUMENTATION = r"""
@@ -102,7 +111,9 @@ class TokenClassificationEvaluator(Evaluator):
     def __init__(self, task="token-classification", default_metric_name=None):
         super().__init__(task, default_metric_name=default_metric_name)
 
-    def predictions_processor(self, predictions: List[List[Dict]], words: List[List[str]], join_by: str):
+    def predictions_processor(
+        self, predictions: List[List[Dict]], words: List[List[str]], join_by: str
+    ):
         """
         Transform the pipeline predictions into a list of predicted labels of the same length as the true labels.
 
@@ -164,7 +175,13 @@ class TokenClassificationEvaluator(Evaluator):
 
         return offsets
 
-    def prepare_data(self, data: Union[str, Dataset], input_column: str, label_column: str, join_by: str):
+    def prepare_data(
+        self,
+        data: Union[str, Dataset],
+        input_column: str,
+        label_column: str,
+        join_by: str,
+    ):
         super().prepare_data(data, input_column, label_column)
 
         if not isinstance(data.features[input_column], Sequence) or not isinstance(
@@ -178,9 +195,14 @@ class TokenClassificationEvaluator(Evaluator):
         # Otherwise, we have to get the list of labels manually.
         labels_are_int = isinstance(data.features[label_column].feature, ClassLabel)
         if labels_are_int:
-            label_list = data.features[label_column].feature.names  # list of string labels
+            label_list = data.features[
+                label_column
+            ].feature.names  # list of string labels
             id_to_label = {i: label for i, label in enumerate(label_list)}
-            references = [[id_to_label[label_id] for label_id in label_ids] for label_ids in data[label_column]]
+            references = [
+                [id_to_label[label_id] for label_id in label_ids]
+                for label_ids in data[label_column]
+            ]
         elif data.features[label_column].feature.dtype.startswith("int"):
             raise NotImplementedError(
                 "References provided as integers, but the reference column is not a Sequence of ClassLabels."
@@ -198,12 +220,20 @@ class TokenClassificationEvaluator(Evaluator):
 
     def prepare_pipeline(
         self,
-        model_or_pipeline: Union[str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"],  # noqa: F821
-        tokenizer: Union["PreTrainedTokenizerBase", "FeatureExtractionMixin"] = None,  # noqa: F821
-        feature_extractor: Union["PreTrainedTokenizerBase", "FeatureExtractionMixin"] = None,  # noqa: F821
+        model_or_pipeline: Union[
+            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"
+        ],  # noqa: F821
+        tokenizer: Union[
+            "PreTrainedTokenizerBase", "FeatureExtractionMixin"
+        ] = None,  # noqa: F821
+        feature_extractor: Union[
+            "PreTrainedTokenizerBase", "FeatureExtractionMixin"
+        ] = None,  # noqa: F821
         device: int = None,
     ):
-        pipe = super().prepare_pipeline(model_or_pipeline, tokenizer, feature_extractor, device)
+        pipe = super().prepare_pipeline(
+            model_or_pipeline, tokenizer, feature_extractor, device
+        )
 
         # check the pipeline outputs start characters in its predictions
         dummy_output = pipe(["2003 New York Gregory"], **self.PIPELINE_KWARGS)
@@ -220,7 +250,11 @@ class TokenClassificationEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
@@ -252,14 +286,21 @@ class TokenClassificationEvaluator(Evaluator):
         # Prepare inputs
         data = self.load_data(data=data, subset=subset, split=split)
         metric_inputs, pipe_inputs = self.prepare_data(
-            data=data, input_column=input_column, label_column=label_column, join_by=join_by
+            data=data,
+            input_column=input_column,
+            label_column=label_column,
+            join_by=join_by,
         )
-        pipe = self.prepare_pipeline(model_or_pipeline=model_or_pipeline, tokenizer=tokenizer, device=device)
+        pipe = self.prepare_pipeline(
+            model_or_pipeline=model_or_pipeline, tokenizer=tokenizer, device=device
+        )
         metric = self.prepare_metric(metric)
 
         # Compute predictions
         predictions, perf_results = self.call_pipeline(pipe, pipe_inputs)
-        predictions = self.predictions_processor(predictions, data[input_column], join_by)
+        predictions = self.predictions_processor(
+            predictions, data[input_column], join_by
+        )
         metric_inputs.update(predictions)
 
         # Compute metrics from references and predictions

@@ -21,13 +21,19 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     test_hf_evaluate_cache = test_hf_cache_home / "datasets"
     test_hf_metrics_cache = test_hf_cache_home / "metrics"
     test_hf_modules_cache = test_hf_cache_home / "modules"
-    monkeypatch.setattr("evaluate.config.HF_EVALUATE_CACHE", str(test_hf_evaluate_cache))
+    monkeypatch.setattr(
+        "evaluate.config.HF_EVALUATE_CACHE", str(test_hf_evaluate_cache)
+    )
     monkeypatch.setattr("evaluate.config.HF_METRICS_CACHE", str(test_hf_metrics_cache))
     monkeypatch.setattr("evaluate.config.HF_MODULES_CACHE", str(test_hf_modules_cache))
     test_DOWNLOADED_EVALUATE_PATH = test_hf_evaluate_cache / "downloads"
-    monkeypatch.setattr("evaluate.config.DOWNLOADED_EVALUATE_PATH", str(test_DOWNLOADED_EVALUATE_PATH))
+    monkeypatch.setattr(
+        "evaluate.config.DOWNLOADED_EVALUATE_PATH", str(test_DOWNLOADED_EVALUATE_PATH)
+    )
     test_EXTRACTED_EVALUATE_PATH = test_hf_evaluate_cache / "downloads" / "extracted"
-    monkeypatch.setattr("evaluate.config.EXTRACTED_EVALUATE_PATH", str(test_EXTRACTED_EVALUATE_PATH))
+    monkeypatch.setattr(
+        "evaluate.config.EXTRACTED_EVALUATE_PATH", str(test_EXTRACTED_EVALUATE_PATH)
+    )
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -278,7 +284,9 @@ def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
-        f.write(csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path)))
+        f.write(
+            csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path))
+        )
     return path
 
 
@@ -294,7 +302,9 @@ def parquet_path(tmp_path_factory):
     )
     with open(path, "wb") as f:
         writer = pq.ParquetWriter(f, schema=schema)
-        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        pa_table = pa.Table.from_pydict(
+            {k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema
+        )
         writer.write_table(pa_table)
         writer.close()
     return path
@@ -393,8 +403,12 @@ def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
 
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
-        f.write(jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path)))
+        f.write(
+            jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path))
+        )
+        f.write(
+            jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path))
+        )
     return path
 
 
@@ -411,7 +425,10 @@ def tar_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 def tar_nested_jsonl_path(tar_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.tar"
     with tarfile.TarFile(path, "w") as f:
-        f.add(tar_jsonl_path, arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)))
+        f.add(
+            tar_jsonl_path,
+            arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)),
+        )
     return path
 
 
@@ -452,8 +469,12 @@ def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
 
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.text.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(text_path, arcname=os.path.join("main_dir", os.path.basename(text_path)))
-        f.write(text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path)))
+        f.write(
+            text_path, arcname=os.path.join("main_dir", os.path.basename(text_path))
+        )
+        f.write(
+            text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path))
+        )
     return path
 
 

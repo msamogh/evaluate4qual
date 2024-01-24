@@ -90,8 +90,12 @@ class Poseval(evaluate.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="label"), id="sequence"
+                    ),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="label"), id="sequence"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/scikit-learn/scikit-learn"],

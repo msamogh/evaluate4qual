@@ -28,12 +28,21 @@ from typing_extensions import Literal
 from ..module import EvaluationModule
 from ..utils.file_utils import add_end_docstrings, add_start_docstrings
 from ..utils.logging import get_logger
-from .base import EVALUATOR_COMPUTE_RETURN_DOCSTRING, EVALUTOR_COMPUTE_START_DOCSTRING, Evaluator
+from .base import (
+    EVALUATOR_COMPUTE_RETURN_DOCSTRING,
+    EVALUTOR_COMPUTE_START_DOCSTRING,
+    Evaluator,
+)
 from .utils import DatasetColumn
 
 
 if TYPE_CHECKING:
-    from transformers import Pipeline, PreTrainedModel, PreTrainedTokenizer, TFPreTrainedModel
+    from transformers import (
+        Pipeline,
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        TFPreTrainedModel,
+    )
 
 
 logger = get_logger(__name__)
@@ -94,7 +103,12 @@ class QuestionAnsweringEvaluator(Evaluator):
         super().__init__(task, default_metric_name=default_metric_name)
 
     def prepare_data(
-        self, data: Dataset, question_column: str, context_column: str, id_column: str, label_column: str
+        self,
+        data: Dataset,
+        question_column: str,
+        context_column: str,
+        id_column: str,
+        label_column: str,
     ):
         """Prepare data."""
         if data is None:
@@ -113,7 +127,8 @@ class QuestionAnsweringEvaluator(Evaluator):
 
         metric_inputs = dict()
         metric_inputs["references"] = [
-            {"id": element[id_column], "answers": element[label_column]} for element in data
+            {"id": element[id_column], "answers": element[label_column]}
+            for element in data
         ]
 
         return metric_inputs, {
@@ -135,7 +150,9 @@ class QuestionAnsweringEvaluator(Evaluator):
         else:
             return False
 
-    def predictions_processor(self, predictions: List, squad_v2_format: bool, ids: List):
+    def predictions_processor(
+        self, predictions: List, squad_v2_format: bool, ids: List
+    ):
         result = []
         for i in range(len(predictions)):
             pred = {"prediction_text": predictions[i]["answer"], "id": ids[i]}
@@ -149,7 +166,11 @@ class QuestionAnsweringEvaluator(Evaluator):
     def compute(
         self,
         model_or_pipeline: Union[
-            str, "Pipeline", Callable, "PreTrainedModel", "TFPreTrainedModel"  # noqa: F821
+            str,
+            "Pipeline",
+            Callable,
+            "PreTrainedModel",
+            "TFPreTrainedModel",  # noqa: F821
         ] = None,
         data: Union[str, Dataset] = None,
         subset: Optional[str] = None,
@@ -196,11 +217,15 @@ class QuestionAnsweringEvaluator(Evaluator):
         )
 
         if squad_v2_format is None:
-            squad_v2_format = self.is_squad_v2_format(data=data, label_column=label_column)
+            squad_v2_format = self.is_squad_v2_format(
+                data=data, label_column=label_column
+            )
             logger.warning(
                 f"`squad_v2_format` parameter not provided to QuestionAnsweringEvaluator.compute(). Automatically inferred `squad_v2_format` as {squad_v2_format}."
             )
-        pipe = self.prepare_pipeline(model_or_pipeline=model_or_pipeline, tokenizer=tokenizer, device=device)
+        pipe = self.prepare_pipeline(
+            model_or_pipeline=model_or_pipeline, tokenizer=tokenizer, device=device
+        )
 
         metric = self.prepare_metric(metric)
 
@@ -220,7 +245,9 @@ class QuestionAnsweringEvaluator(Evaluator):
 
         # Compute predictions
         predictions, perf_results = self.call_pipeline(pipe, **pipe_inputs)
-        predictions = self.predictions_processor(predictions, squad_v2_format=squad_v2_format, ids=data[id_column])
+        predictions = self.predictions_processor(
+            predictions, squad_v2_format=squad_v2_format, ids=data[id_column]
+        )
         metric_inputs.update(predictions)
 
         # Compute metrics from references and predictions

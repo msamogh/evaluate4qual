@@ -44,13 +44,26 @@ class TextGenerationEvaluator(Evaluator):
         Returns:
             `dict`: All the generated texts are flattened and stored under the "data" key.
         """
-        return {"data": [pred[f"{self.predictions_prefix}_text"] for pred_list in predictions for pred in pred_list]}
+        return {
+            "data": [
+                pred[f"{self.predictions_prefix}_text"]
+                for pred_list in predictions
+                for pred in pred_list
+            ]
+        }
 
-    def __init__(self, task="text-generation", default_metric_name=None, predictions_prefix: str = "generated"):
+    def __init__(
+        self,
+        task="text-generation",
+        default_metric_name=None,
+        predictions_prefix: str = "generated",
+    ):
         super().__init__(task=task, default_metric_name=default_metric_name)
         self.predictions_prefix = predictions_prefix
 
-    def prepare_data(self, data: Dataset, input_column: str, *args, **kwargs) -> Tuple[Dict, DatasetColumn]:
+    def prepare_data(
+        self, data: Dataset, input_column: str, *args, **kwargs
+    ) -> Tuple[Dict, DatasetColumn]:
         """
         Prepare data.
 

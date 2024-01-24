@@ -54,7 +54,8 @@ ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
 
 
 def init_dynamic_modules(
-    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
+    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES,
+    hf_modules_cache: Optional[Union[Path, str]] = None,
 ):
     """
     Create a module with name `name` in which you can add dynamic modules
@@ -71,7 +72,9 @@ def init_dynamic_modules(
     return dynamic_modules_path
 
 
-def import_main_class(module_path) -> Optional[Union[Type[DatasetBuilder], Type[EvaluationModule]]]:
+def import_main_class(
+    module_path,
+) -> Optional[Union[Type[DatasetBuilder], Type[EvaluationModule]]]:
     """Import a module at module_path and return its main class, a Metric by default"""
     module = importlib.import_module(module_path)
     main_cls_type = EvaluationModule
@@ -115,14 +118,22 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
         if "blob" in url_path:
             if not url_path.endswith(".py"):
-                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
+                raise ValueError(
+                    f"External import from github at {url_path} should point to a file ending with '.py'"
+                )
             url_path = url_path.replace("blob", "raw")  # Point to the raw file
         else:
             # Parse github url to point to zip
             github_path = parsed.path[1:]
-            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
+            repo_info, branch = (
+                github_path.split("/tree/")
+                if "/tree/" in github_path
+                else (github_path, "master")
+            )
             repo_owner, repo_name = repo_info.split("/")
-            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
+            url_path = (
+                f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
+            )
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
 
@@ -131,7 +142,9 @@ def increase_load_count(name: str, resource_type: str):
     """Update the download count of a dataset or metric."""
     if not config.HF_EVALUATE_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            head_hf_s3(name, filename=name + ".py", dataset=(resource_type == "dataset"))
+            head_hf_s3(
+                name, filename=name + ".py", dataset=(resource_type == "dataset")
+            )
         except Exception:
             pass
 
@@ -176,7 +189,11 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
             # not be added as required dependencies
             continue
 
-        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
+        match = re.match(
+            r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
+            line,
+            flags=re.MULTILINE,
+        )
         if match is None:
             match = re.match(
                 r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
@@ -210,7 +227,10 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
 
 
 def _download_additional_modules(
-    name: str, base_path: str, imports: Tuple[str, str, str, str], download_config: Optional[DownloadConfig]
+    name: str,
+    base_path: str,
+    imports: Tuple[str, str, str, str],
+    download_config: Optional[DownloadConfig],
 ) -> List[Tuple[str, str]]:
     """
     Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
@@ -259,7 +279,11 @@ def _download_additional_modules(
         try:
             lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            library_import_name = "scikit-learn" if library_import_name == "sklearn" else library_import_name
+            library_import_name = (
+                "scikit-learn"
+                if library_import_name == "sklearn"
+                else library_import_name
+            )
             needs_to_be_installed.add((library_import_name, library_import_path))
     if needs_to_be_installed:
         raise ImportError(
@@ -304,7 +328,9 @@ def _copy_script_and_other_resources_in_importable_dir(
     lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
-        if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
+        if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(
+            importable_directory_path
+        ):
             shutil.rmtree(importable_directory_path)
         os.makedirs(importable_directory_path, exist_ok=True)
 
@@ -329,7 +355,10 @@ def _copy_script_and_other_resources_in_importable_dir(
         # Record metadata associating original dataset path with local unique folder
         meta_path = importable_local_file.split(".py")[0] + ".json"
         if not os.path.exists(meta_path):
-            meta = {"original file path": original_local_path, "local file path": importable_local_file}
+            meta = {
+                "original file path": original_local_path,
+                "local file path": importable_local_file,
+            }
             # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
             with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
@@ -337,11 +366,15 @@ def _copy_script_and_other_resources_in_importable_dir(
         # Copy all the additional imports
         for import_name, import_path in local_imports:
             if os.path.isfile(import_path):
-                full_path_local_import = os.path.join(importable_subdirectory, import_name + ".py")
+                full_path_local_import = os.path.join(
+                    importable_subdirectory, import_name + ".py"
+                )
                 if not os.path.exists(full_path_local_import):
                     shutil.copyfile(import_path, full_path_local_import)
             elif os.path.isdir(import_path):
-                full_path_local_import = os.path.join(importable_subdirectory, import_name)
+                full_path_local_import = os.path.join(
+                    importable_subdirectory, import_name
+                )
                 if not os.path.exists(full_path_local_import):
                     shutil.copytree(import_path, full_path_local_import)
             else:
@@ -349,7 +382,9 @@ def _copy_script_and_other_resources_in_importable_dir(
 
         # Copy aditional files like dataset infos file if needed
         for file_name, original_path in additional_files:
-            destination_additional_path = os.path.join(importable_subdirectory, file_name)
+            destination_additional_path = os.path.join(
+                importable_subdirectory, file_name
+            )
             if not os.path.exists(destination_additional_path) or not filecmp.cmp(
                 original_path, destination_additional_path
             ):
@@ -366,7 +401,9 @@ def _create_importable_file(
     name: str,
     download_mode: DownloadMode,
 ) -> Tuple[str, str]:
-    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
+    importable_directory_path = os.path.join(
+        dynamic_modules_path, module_namespace, name.replace("/", "--")
+    )
     Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
     (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
@@ -381,7 +418,13 @@ def _create_importable_file(
     )
     logger.debug(f"Created importable dataset file at {importable_local_file}")
     module_path = ".".join(
-        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "--"), hash, name.split("/")[-1]]
+        [
+            os.path.basename(dynamic_modules_path),
+            module_namespace,
+            name.replace("/", "--"),
+            hash,
+            name.split("/")[-1],
+        ]
     )
     return module_path, hash
 
@@ -425,7 +468,11 @@ class LocalEvaluationModuleFactory(_EvaluationModuleFactory):
             download_config=self.download_config,
         )
         # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
+        dynamic_modules_path = (
+            self.dynamic_modules_path
+            if self.dynamic_modules_path
+            else init_dynamic_modules()
+        )
         module_path, hash = _create_importable_file(
             local_path=self.path,
             local_imports=local_imports,
@@ -462,7 +509,9 @@ class HubEvaluationModuleFactory(_EvaluationModuleFactory):
         increase_load_count(name, resource_type="metric")
 
     def download_loading_script(self, revision) -> str:
-        file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=revision)
+        file_path = hf_hub_url(
+            path=self.name, name=self.name.split("/")[1] + ".py", revision=revision
+        )
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
@@ -471,15 +520,22 @@ class HubEvaluationModuleFactory(_EvaluationModuleFactory):
     def get_module(self) -> ImportableModule:
         revision = self.revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
 
-        if re.match(r"\d*\.\d*\.\d*", revision):  # revision is version number (three digits separated by full stops)
-            revision = "v" + revision  # tagging convention on evaluate repository starts with v
+        if re.match(
+            r"\d*\.\d*\.\d*", revision
+        ):  # revision is version number (three digits separated by full stops)
+            revision = (
+                "v" + revision
+            )  # tagging convention on evaluate repository starts with v
 
         # get script and other files
         try:
             local_path = self.download_loading_script(revision)
         except FileNotFoundError as err:
             # if there is no file found with current revision tag try to load main
-            if self.revision is None and os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION) != "main":
+            if (
+                self.revision is None
+                and os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION) != "main"
+            ):
                 revision = "main"
                 local_path = self.download_loading_script(revision)
             else:
@@ -493,7 +549,11 @@ class HubEvaluationModuleFactory(_EvaluationModuleFactory):
             download_config=self.download_config,
         )
         # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
+        dynamic_modules_path = (
+            self.dynamic_modules_path
+            if self.dynamic_modules_path
+            else init_dynamic_modules()
+        )
         module_path, hash = _create_importable_file(
             local_path=local_path,
             local_imports=local_imports,
@@ -526,20 +586,34 @@ class CachedEvaluationModuleFactory(_EvaluationModuleFactory):
         assert self.name.count("/") == 0
 
     def get_module(self) -> ImportableModule:
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, self.module_type, self.name)
+        dynamic_modules_path = (
+            self.dynamic_modules_path
+            if self.dynamic_modules_path
+            else init_dynamic_modules()
+        )
+        importable_directory_path = os.path.join(
+            dynamic_modules_path, self.module_type, self.name
+        )
         hashes = (
             [h for h in os.listdir(importable_directory_path) if len(h) == 64]
             if os.path.isdir(importable_directory_path)
             else None
         )
         if not hashes:
-            raise FileNotFoundError(f"Metric {self.name} is not cached in {dynamic_modules_path}")
+            raise FileNotFoundError(
+                f"Metric {self.name} is not cached in {dynamic_modules_path}"
+            )
         # get most recent
 
         def _get_modification_time(module_hash):
             return (
-                (Path(importable_directory_path) / module_hash / (self.name.split("--")[-1] + ".py")).stat().st_mtime
+                (
+                    Path(importable_directory_path)
+                    / module_hash
+                    / (self.name.split("--")[-1] + ".py")
+                )
+                .stat()
+                .st_mtime
             )
 
         hash = sorted(hashes, key=_get_modification_time)[-1]
@@ -550,7 +624,13 @@ class CachedEvaluationModuleFactory(_EvaluationModuleFactory):
         )
         # make the new module to be noticed by the import system
         module_path = ".".join(
-            [os.path.basename(dynamic_modules_path), self.module_type, self.name, hash, self.name.split("--")[-1]]
+            [
+                os.path.basename(dynamic_modules_path),
+                self.module_type,
+                self.name,
+                hash,
+                self.name.split("--")[-1],
+            ]
         )
         importlib.invalidate_caches()
         return ImportableModule(module_path, hash)
@@ -614,13 +694,19 @@ def evaluation_module_factory(
     if path.endswith(filename):
         if os.path.isfile(path):
             return LocalEvaluationModuleFactory(
-                path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                path,
+                download_mode=download_mode,
+                dynamic_modules_path=dynamic_modules_path,
             ).get_module()
         else:
-            raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
+            raise FileNotFoundError(
+                f"Couldn't find a metric script at {relative_to_absolute_path(path)}"
+            )
     elif os.path.isfile(combined_path):
         return LocalEvaluationModuleFactory(
-            combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+            combined_path,
+            download_mode=download_mode,
+            dynamic_modules_path=dynamic_modules_path,
         ).get_module()
     elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
         try:
@@ -658,23 +744,31 @@ def evaluation_module_factory(
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
                 ).get_module()
-        except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+        except (
+            Exception
+        ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
             # if it's a canonical module we need to check if it's any of the types
             if path.count("/") == 0:
                 for current_type in ["metric", "comparison", "measurement"]:
                     try:
                         return CachedEvaluationModuleFactory(
-                            f"evaluate-{current_type}--{path}", dynamic_modules_path=dynamic_modules_path
+                            f"evaluate-{current_type}--{path}",
+                            dynamic_modules_path=dynamic_modules_path,
                         ).get_module()
-                    except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
+                    except (
+                        Exception
+                    ) as e2:  # noqa: if it's not in the cache, then it doesn't exist.
                         pass
             # if it's a community module we just need to check on path
             elif path.count("/") == 1:
                 try:
                     return CachedEvaluationModuleFactory(
-                        path.replace("/", "--"), dynamic_modules_path=dynamic_modules_path
+                        path.replace("/", "--"),
+                        dynamic_modules_path=dynamic_modules_path,
                     ).get_module()
-                except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
+                except (
+                    Exception
+                ) as e2:  # noqa: if it's not in the cache, then it doesn't exist.
                     pass
             if not isinstance(e1, (ConnectionError, FileNotFoundError)):
                 raise e1 from None
@@ -683,7 +777,9 @@ def evaluation_module_factory(
                 f"Module '{path}' doesn't exist on the Hugging Face Hub either."
             ) from None
     else:
-        raise FileNotFoundError(f"Couldn't find a module script at {relative_to_absolute_path(combined_path)}.")
+        raise FileNotFoundError(
+            f"Couldn't find a module script at {relative_to_absolute_path(combined_path)}."
+        )
 
 
 def load(
@@ -746,7 +842,11 @@ def load(
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     evaluation_module = evaluation_module_factory(
-        path, module_type=module_type, revision=revision, download_config=download_config, download_mode=download_mode
+        path,
+        module_type=module_type,
+        revision=revision,
+        download_config=download_config,
+        download_mode=download_mode,
     )
     evaluation_cls = import_main_class(evaluation_module.module_path)
     evaluation_instance = evaluation_cls(

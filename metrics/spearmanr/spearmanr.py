@@ -109,7 +109,9 @@ class Spearmanr(evaluate.Metric):
                     "references": datasets.Value("float"),
                 }
             ),
-            reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"],
+            reference_urls=[
+                "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"
+            ],
         )
 
     def _compute(self, predictions, references, return_pvalue=False):

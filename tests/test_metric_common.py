@@ -76,23 +76,37 @@ def skip_slow_metrics(test_case):
 
 def get_local_module_names():
     metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]
-    comparisons = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./comparisons/*/")]
-    measurements = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./measurements/*/")]
+    comparisons = [
+        metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./comparisons/*/")
+    ]
+    measurements = [
+        metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./measurements/*/")
+    ]
 
     evaluation_modules = metrics + comparisons + measurements
     evaluation_module_types = (
-        ["metric"] * len(metrics) + ["comparison"] * len(comparisons) + ["measurement"] * len(measurements)
+        ["metric"] * len(metrics)
+        + ["comparison"] * len(comparisons)
+        + ["measurement"] * len(measurements)
     )
 
     return [
-        {"testcase_name": f"{t}_{x}", "evaluation_module_name": x, "evaluation_module_type": t}
+        {
+            "testcase_name": f"{t}_{x}",
+            "evaluation_module_name": x,
+            "evaluation_module_type": t,
+        }
         for x, t in zip(evaluation_modules, evaluation_module_types)
         if x != "gleu"  # gleu is unfinished
     ]
 
 
 @parameterized.named_parameters(get_local_module_names())
-@for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible, skip_slow_metrics)
+@for_all_test_methods(
+    skip_if_metric_requires_fairseq,
+    skip_on_windows_if_not_windows_compatible,
+    skip_slow_metrics,
+)
 @local
 class LocalModuleTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
@@ -103,18 +117,27 @@ class LocalModuleTest(parameterized.TestCase):
         doctest.ELLIPSIS_MARKER = "[...]"
         evaluation_module = importlib.import_module(
             evaluate.loading.evaluation_module_factory(
-                os.path.join(evaluation_module_type + "s", evaluation_module_name), module_type=evaluation_module_type
+                os.path.join(evaluation_module_type + "s", evaluation_module_name),
+                module_type=evaluation_module_type,
             ).module_path
         )
-        evaluation_instance = evaluate.loading.import_main_class(evaluation_module.__name__)
+        evaluation_instance = evaluate.loading.import_main_class(
+            evaluation_module.__name__
+        )
         # check parameters
         parameters = inspect.signature(evaluation_instance._compute).parameters
-        self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+        self.assertTrue(
+            all([p.kind != p.VAR_KEYWORD for p in parameters.values()])
+        )  # no **kwargs
         # run doctest
-        with self.patch_intensive_calls(evaluation_module_name, evaluation_module.__name__):
+        with self.patch_intensive_calls(
+            evaluation_module_name, evaluation_module.__name__
+        ):
             with self.use_local_metrics(evaluation_module_type):
                 try:
-                    results = doctest.testmod(evaluation_module, verbose=True, raise_on_error=True)
+                    results = doctest.testmod(
+                        evaluation_module, verbose=True, raise_on_error=True
+                    )
                 except doctest.UnexpectedException as e:
                     raise e.exc_info[1]  # raise the exception that doctest caught
         self.assertEqual(results.failed, 0)
@@ -145,7 +168,11 @@ class LocalModuleTest(parameterized.TestCase):
     @contextmanager
     def use_local_metrics(self, evaluation_module_type):
         def load_local_metric(evaluation_module_name, *args, **kwargs):
-            return load(os.path.join(evaluation_module_type + "s", evaluation_module_name), *args, **kwargs)
+            return load(
+                os.path.join(evaluation_module_type + "s", evaluation_module_name),
+                *args,
+                **kwargs,
+            )
 
         with patch("evaluate.load") as mock_load:
             mock_load.side_effect = load_local_metric

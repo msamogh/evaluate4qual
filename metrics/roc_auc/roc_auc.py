@@ -165,7 +165,9 @@ class ROCAUC(evaluate.Metric):
                     "prediction_scores": datasets.Value("float"),
                 }
             ),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html"],
+            reference_urls=[
+                "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html"
+            ],
         )
 
     def _compute(

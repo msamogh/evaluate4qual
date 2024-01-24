@@ -119,7 +119,10 @@ def regard(group, regard_classifier):
 class Regard(evaluate.Measurement):
     def _info(self):
         if self.config_name not in ["compare", "default"]:
-            raise KeyError("You should supply a configuration name selected in " '["config", "default"]')
+            raise KeyError(
+                "You should supply a configuration name selected in "
+                '["config", "default"]'
+            )
         return evaluate.MeasurementInfo(
             module_type="measurement",
             description=_DESCRIPTION,
@@ -141,9 +144,15 @@ class Regard(evaluate.Measurement):
 
     def _download_and_prepare(self, dl_manager):
         regard_tokenizer = AutoTokenizer.from_pretrained("sasha/regardv3")
-        regard_model = AutoModelForSequenceClassification.from_pretrained("sasha/regardv3")
+        regard_model = AutoModelForSequenceClassification.from_pretrained(
+            "sasha/regardv3"
+        )
         self.regard_classifier = pipeline(
-            "text-classification", model=regard_model, top_k=4, tokenizer=regard_tokenizer, truncation=True
+            "text-classification",
+            model=regard_model,
+            top_k=4,
+            tokenizer=regard_tokenizer,
+            truncation=True,
         )
 
     def _compute(
@@ -165,9 +174,16 @@ class Regard(evaluate.Measurement):
                     "max_references_regard": ref_max,
                 }
             elif aggregation == "average":
-                return {"average_data_regard": pred_mean, "average_references_regard": ref_mean}
+                return {
+                    "average_data_regard": pred_mean,
+                    "average_references_regard": ref_mean,
+                }
             else:
-                return {"regard_difference": {key: pred_mean[key] - ref_mean.get(key, 0) for key in pred_mean}}
+                return {
+                    "regard_difference": {
+                        key: pred_mean[key] - ref_mean.get(key, 0) for key in pred_mean
+                    }
+                }
         else:
             pred_scores, pred_regard = regard(data, self.regard_classifier)
             pred_mean = {k: mean(v) for k, v in pred_regard.items()}

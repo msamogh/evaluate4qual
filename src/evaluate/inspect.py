@@ -32,7 +32,9 @@ class SplitsNotFoundError(ValueError):
     pass
 
 
-def list_evaluation_modules(module_type=None, include_community=True, with_details=False):
+def list_evaluation_modules(
+    module_type=None, include_community=True, with_details=False
+):
     """List all evaluation modules available on the Hugging Face Hub.
 
     Args:
@@ -59,26 +61,35 @@ def list_evaluation_modules(module_type=None, include_community=True, with_detai
         for module_type in EVALUATION_MODULE_TYPES:
             evaluations_list.extend(
                 _list_evaluation_modules_type(
-                    module_type, include_community=include_community, with_details=with_details
+                    module_type,
+                    include_community=include_community,
+                    with_details=with_details,
                 )
             )
     else:
         if module_type not in EVALUATION_MODULE_TYPES:
-            raise ValueError(f"Invalid module type '{module_type}'. Has to be one of {EVALUATION_MODULE_TYPES}.")
+            raise ValueError(
+                f"Invalid module type '{module_type}'. Has to be one of {EVALUATION_MODULE_TYPES}."
+            )
         evaluations_list = _list_evaluation_modules_type(
             module_type, include_community=include_community, with_details=with_details
         )
     return evaluations_list
 
 
-def _list_evaluation_modules_type(module_type, include_community=True, with_details=False):
-
+def _list_evaluation_modules_type(
+    module_type, include_community=True, with_details=False
+):
     r = requests.get(HF_LIST_ENDPOINT.format(type=module_type))
     r.raise_for_status()
     d = r.json()
 
     if not include_community:
-        d = [element for element in d if element["id"].split("/")[0] == f"evaluate-{module_type}"]
+        d = [
+            element
+            for element in d
+            if element["id"].split("/")[0] == f"evaluate-{module_type}"
+        ]
 
     # remove namespace for canonical modules and add community tag
     for element in d:
@@ -103,7 +114,10 @@ def _list_evaluation_modules_type(module_type, include_community=True, with_deta
 
 
 def inspect_evaluation_module(
-    path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs
+    path: str,
+    local_path: str,
+    download_config: Optional[DownloadConfig] = None,
+    **download_kwargs,
 ):
     r"""
     Allow inspection/modification of a evaluation script by copying it on local drive at local_path.
@@ -120,7 +134,10 @@ def inspect_evaluation_module(
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     evaluation_module = evaluation_module_factory(
-        path, download_config=download_config, force_local_path=local_path, **download_kwargs
+        path,
+        download_config=download_config,
+        force_local_path=local_path,
+        **download_kwargs,
     )
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "

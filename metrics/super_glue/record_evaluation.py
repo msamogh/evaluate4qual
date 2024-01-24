@@ -70,7 +70,9 @@ def evaluate(dataset, predictions):
             ground_truths = list(map(lambda x: x["text"], qa["answers"]))
             prediction = predictions[qa["id"]]
 
-            _exact_match = metric_max_over_ground_truths(exact_match_score, prediction, ground_truths)
+            _exact_match = metric_max_over_ground_truths(
+                exact_match_score, prediction, ground_truths
+            )
             if int(_exact_match) == 1:
                 correct_ids.append(qa["id"])
             exact_match += _exact_match
@@ -88,7 +90,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Official evaluation script for ReCoRD v1.0.")
     parser.add_argument("data_file", help="The dataset file in JSON format.")
     parser.add_argument("pred_file", help="The model prediction file in JSON format.")
-    parser.add_argument("--output_correct_ids", action="store_true", help="Output the correctly answered query IDs.")
+    parser.add_argument(
+        "--output_correct_ids",
+        action="store_true",
+        help="Output the correctly answered query IDs.",
+    )
     args = parser.parse_args()
 
     with open(args.data_file) as data_file:

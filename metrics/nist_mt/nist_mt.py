@@ -96,7 +96,9 @@ class NistMt(evaluate.Metric):
                 datasets.Features(
                     {
                         "predictions": Value("string", id="prediction"),
-                        "references": Sequence(Value("string", id="reference"), id="references"),
+                        "references": Sequence(
+                            Value("string", id="reference"), id="references"
+                        ),
                     }
                 ),
                 datasets.Features(
@@ -107,11 +109,15 @@ class NistMt(evaluate.Metric):
                 ),
             ],
             homepage="https://www.nltk.org/api/nltk.translate.nist_score.html",
-            codebase_urls=["https://github.com/nltk/nltk/blob/develop/nltk/translate/nist_score.py"],
+            codebase_urls=[
+                "https://github.com/nltk/nltk/blob/develop/nltk/translate/nist_score.py"
+            ],
             reference_urls=["https://en.wikipedia.org/wiki/NIST_(metric)"],
         )
 
-    def _compute(self, predictions, references, n: int = 5, lowercase=False, western_lang=True):
+    def _compute(
+        self, predictions, references, n: int = 5, lowercase=False, western_lang=True
+    ):
         tokenizer = NISTTokenizer()
 
         # Account for single reference cases: references always need to have one more dimension than predictions
@@ -119,14 +125,25 @@ class NistMt(evaluate.Metric):
             references = [[ref] for ref in references]
 
         predictions = [
-            tokenizer.tokenize(pred, return_str=False, lowercase=lowercase, western_lang=western_lang)
+            tokenizer.tokenize(
+                pred, return_str=False, lowercase=lowercase, western_lang=western_lang
+            )
             for pred in predictions
         ]
         references = [
             [
-                tokenizer.tokenize(ref, return_str=False, lowercase=lowercase, western_lang=western_lang)
+                tokenizer.tokenize(
+                    ref,
+                    return_str=False,
+                    lowercase=lowercase,
+                    western_lang=western_lang,
+                )
                 for ref in ref_sentences
             ]
             for ref_sentences in references
         ]
-        return {"nist_mt": corpus_nist(list_of_references=references, hypotheses=predictions, n=n)}
+        return {
+            "nist_mt": corpus_nist(
+                list_of_references=references, hypotheses=predictions, n=n
+            )
+        }

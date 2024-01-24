@@ -21,15 +21,21 @@ class ComplexRadar:
     `matplotlib.figure.Figure`: a radar plot.
     """
 
-    def __init__(self, fig, variables, ranges, n_ring_levels=5, show_scales=True, format_cfg=None):
-
+    def __init__(
+        self, fig, variables, ranges, n_ring_levels=5, show_scales=True, format_cfg=None
+    ):
         self.format_cfg = format_cfg
 
         # Calculate angles and create for each variable an axes
         # Consider here the trick with having the first axes element twice (len+1)
         angles = np.arange(0, 360, 360.0 / len(variables))
         axes = [
-            fig.add_axes([0.1, 0.1, 0.9, 0.9], polar=True, label="axes{}".format(i), **self.format_cfg["axes_args"])
+            fig.add_axes(
+                [0.1, 0.1, 0.9, 0.9],
+                polar=True,
+                label="axes{}".format(i),
+                **self.format_cfg["axes_args"]
+            )
             for i in range(len(variables) + 1)
         ]
 
@@ -41,16 +47,20 @@ class ComplexRadar:
 
         # Writing the ranges on each axes
         for i, ax in enumerate(axes):
-
             # Here we do the trick by repeating the first iteration
             j = 0 if (i == 0 or i == 1) else i - 1
             ax.set_ylim(*ranges[j])
             # Set endpoint to True if you like to have values right before the last circle
-            grid = np.linspace(*ranges[j], num=n_ring_levels, endpoint=self.format_cfg["incl_endpoint"])
+            grid = np.linspace(
+                *ranges[j], num=n_ring_levels, endpoint=self.format_cfg["incl_endpoint"]
+            )
             gridlabel = ["{}".format(round(x, 2)) for x in grid]
             gridlabel[0] = ""  # remove values from the center
             lines, labels = ax.set_rgrids(
-                grid, labels=gridlabel, angle=angles[j], **self.format_cfg["rgrid_tick_lbls_args"]
+                grid,
+                labels=gridlabel,
+                angle=angles[j],
+                **self.format_cfg["rgrid_tick_lbls_args"]
             )
 
             ax.set_ylim(*ranges[j])
@@ -182,7 +192,9 @@ def radar_plot(data, model_names, invert_range=[], config=None, fig=None):
     data.index = model_names
     variables = data.keys()
     if all(x in variables for x in invert_range) is False:
-        raise ValueError("All of the metrics in `invert_range` should be in the data provided.")
+        raise ValueError(
+            "All of the metrics in `invert_range` should be in the data provided."
+        )
     min_max_per_variable = data.describe().T[["min", "max"]]
     min_max_per_variable["min"] = min_max_per_variable["min"] - 0.1 * (
         min_max_per_variable["max"] - min_max_per_variable["min"]
@@ -225,6 +237,16 @@ def radar_plot(data, model_names, invert_range=[], config=None, fig=None):
         format_cfg=format_cfg,
     )
     for g in zip(data.index):
-        radar.plot(data.loc[g].values, label=g, marker=format_cfg["marker"], markersize=format_cfg["markersize"])
-        radar.use_legend(**{"loc": format_cfg["legend_loc"], "bbox_to_anchor": format_cfg["bbox_to_anchor"]})
+        radar.plot(
+            data.loc[g].values,
+            label=g,
+            marker=format_cfg["marker"],
+            markersize=format_cfg["markersize"],
+        )
+        radar.use_legend(
+            **{
+                "loc": format_cfg["legend_loc"],
+                "bbox_to_anchor": format_cfg["bbox_to_anchor"],
+            }
+        )
     return fig

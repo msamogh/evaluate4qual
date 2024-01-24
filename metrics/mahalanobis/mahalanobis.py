@@ -66,13 +66,14 @@ class Mahalanobis(evaluate.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "X": datasets.Sequence(datasets.Value("float", id="sequence"), id="X"),
+                    "X": datasets.Sequence(
+                        datasets.Value("float", id="sequence"), id="X"
+                    ),
                 }
             ),
         )
 
     def _compute(self, X, reference_distribution):
-
         # convert to numpy arrays
         X = np.array(X)
         reference_distribution = np.array(reference_distribution)

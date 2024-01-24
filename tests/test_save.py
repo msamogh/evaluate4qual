@@ -9,7 +9,13 @@ import evaluate
 
 result_dict = {"metric": 1.0, "model_name": "x"}
 
-SAVE_EXTRA_KEYS = ["_timestamp", "_git_commit_hash", "_evaluate_version", "_python_version", "_interpreter_path"]
+SAVE_EXTRA_KEYS = [
+    "_timestamp",
+    "_git_commit_hash",
+    "_evaluate_version",
+    "_python_version",
+    "_interpreter_path",
+]
 
 
 class TestSave(TestCase):

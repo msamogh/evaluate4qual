@@ -12,8 +12,12 @@ logger = get_logger(__name__)
 
 
 # Metrics
-S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
-CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
+S3_METRICS_BUCKET_PREFIX = (
+    "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
+)
+CLOUDFRONT_METRICS_DISTRIB_PREFIX = (
+    "https://cdn-datasets.huggingface.co/datasets/metric"
+)
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/evaluate/{revision}/metrics/{path}/{name}"
 REPO_MEASUREMENTS_URL = "https://raw.githubusercontent.com/huggingface/evaluate/{revision}/measurements/{path}/{name}"
 REPO_COMPARISONS_URL = "https://raw.githubusercontent.com/huggingface/evaluate/{revision}/comparisons/{path}/{name}"
@@ -89,7 +93,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             TF_AVAILABLE = False
     if TF_AVAILABLE:
         if TF_VERSION.major < 2:
-            logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
+            logger.info(
+                f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum."
+            )
             TF_AVAILABLE = False
         else:
             logger.info(f"TensorFlow version {TF_VERSION} available.")
@@ -128,20 +134,31 @@ DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
 DOWNLOADED_DATASETS_DIR = "downloads"
-DEFAULT_DOWNLOADED_EVALUATE_PATH = os.path.join(HF_EVALUATE_CACHE, DOWNLOADED_DATASETS_DIR)
-DOWNLOADED_EVALUATE_PATH = Path(os.getenv("HF_DATASETS_DOWNLOADED_EVALUATE_PATH", DEFAULT_DOWNLOADED_EVALUATE_PATH))
+DEFAULT_DOWNLOADED_EVALUATE_PATH = os.path.join(
+    HF_EVALUATE_CACHE, DOWNLOADED_DATASETS_DIR
+)
+DOWNLOADED_EVALUATE_PATH = Path(
+    os.getenv("HF_DATASETS_DOWNLOADED_EVALUATE_PATH", DEFAULT_DOWNLOADED_EVALUATE_PATH)
+)
 
 EXTRACTED_EVALUATE_DIR = "extracted"
-DEFAULT_EXTRACTED_EVALUATE_PATH = os.path.join(DEFAULT_DOWNLOADED_EVALUATE_PATH, EXTRACTED_EVALUATE_DIR)
-EXTRACTED_EVALUATE_PATH = Path(os.getenv("HF_DATASETS_EXTRACTED_EVALUATE_PATH", DEFAULT_EXTRACTED_EVALUATE_PATH))
+DEFAULT_EXTRACTED_EVALUATE_PATH = os.path.join(
+    DEFAULT_DOWNLOADED_EVALUATE_PATH, EXTRACTED_EVALUATE_DIR
+)
+EXTRACTED_EVALUATE_PATH = Path(
+    os.getenv("HF_DATASETS_EXTRACTED_EVALUATE_PATH", DEFAULT_EXTRACTED_EVALUATE_PATH)
+)
 
 # Download count for the website
 HF_UPDATE_DOWNLOAD_COUNTS = (
-    os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
+    os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper()
+    in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
 
 # Offline mode
-HF_EVALUATE_OFFLINE = os.environ.get("HF_EVALUATE_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+HF_EVALUATE_OFFLINE = (
+    os.environ.get("HF_EVALUATE_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+)
 
 
 # File names

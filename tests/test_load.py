@@ -93,17 +93,25 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_LocalMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        path = os.path.join(
+            self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py"
+        )
         factory = LocalEvaluationModuleFactory(
-            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            path,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_CachedMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        path = os.path.join(
+            self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py"
+        )
         factory = LocalEvaluationModuleFactory(
-            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            path,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
         module_factory_result = factory.get_module()
         for offline_mode in OfflineSimulationMode:
@@ -113,28 +121,39 @@ class ModuleFactoryTest(TestCase):
                     dynamic_modules_path=self.dynamic_modules_path,
                 )
                 module_factory_result = factory.get_module()
-                assert importlib.import_module(module_factory_result.module_path) is not None
+                assert (
+                    importlib.import_module(module_factory_result.module_path)
+                    is not None
+                )
 
     def test_cache_with_remote_canonical_module(self):
         metric = "accuracy"
         evaluation_module_factory(
-            metric, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            metric,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
 
         for offline_mode in OfflineSimulationMode:
             with offline(offline_mode):
                 evaluation_module_factory(
-                    metric, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+                    metric,
+                    download_config=self.download_config,
+                    dynamic_modules_path=self.dynamic_modules_path,
                 )
 
     def test_cache_with_remote_community_module(self):
         metric = "lvwerra/test"
         evaluation_module_factory(
-            metric, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            metric,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
 
         for offline_mode in OfflineSimulationMode:
             with offline(offline_mode):
                 evaluation_module_factory(
-                    metric, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+                    metric,
+                    download_config=self.download_config,
+                    dynamic_modules_path=self.dynamic_modules_path,
                 )

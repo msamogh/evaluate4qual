@@ -76,13 +76,19 @@ class Charcut(evaluate.Metric):
             # This defines the format of each prediction and reference
             features=[
                 datasets.Features(
-                    {"predictions": Value("string", id="prediction"), "references": Value("string", id="reference")}
+                    {
+                        "predictions": Value("string", id="prediction"),
+                        "references": Value("string", id="reference"),
+                    }
                 ),
             ],
             # Homepage of the module for documentation
             homepage="https://github.com/BramVanroy/CharCut",
             # Additional links to the codebase or references
-            codebase_urls=["https://github.com/BramVanroy/CharCut", "https://github.com/alardill/CharCut"],
+            codebase_urls=[
+                "https://github.com/BramVanroy/CharCut",
+                "https://github.com/alardill/CharCut",
+            ],
         )
 
     def _compute(self, predictions: Iterable[str], references: Iterable[str]):

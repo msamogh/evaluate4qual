@@ -87,7 +87,9 @@ class RLReliability(evaluate.Metric):
 
     def _info(self):
         if self.config_name not in ["online", "offline"]:
-            raise KeyError("""You should supply a configuration name selected in '["online", "offline"]'""")
+            raise KeyError(
+                """You should supply a configuration name selected in '["online", "offline"]'"""
+            )
 
         return evaluate.MetricInfo(
             module_type="metric",
@@ -132,29 +134,47 @@ class RLReliability(evaluate.Metric):
             metrics = [
                 metrics_online.HighFreqEnergyWithinRuns(thresh=freq_thresh),
                 metrics_online.IqrWithinRuns(
-                    window_size=window_size_trimmed, eval_points=eval_points, baseline=baseline
+                    window_size=window_size_trimmed,
+                    eval_points=eval_points,
+                    baseline=baseline,
                 ),
                 metrics_online.IqrAcrossRuns(
-                    lowpass_thresh=freq_thresh, eval_points=eval_points, window_size=window_size, baseline=baseline
+                    lowpass_thresh=freq_thresh,
+                    eval_points=eval_points,
+                    window_size=window_size,
+                    baseline=baseline,
                 ),
                 metrics_online.LowerCVaROnDiffs(baseline=baseline),
                 metrics_online.LowerCVaROnDrawdown(baseline=baseline),
                 metrics_online.LowerCVaROnAcross(
-                    lowpass_thresh=freq_thresh, eval_points=eval_points, window_size=window_size, baseline=baseline
+                    lowpass_thresh=freq_thresh,
+                    eval_points=eval_points,
+                    window_size=window_size,
+                    baseline=baseline,
                 ),
                 metrics_online.LowerCVaROnRaw(alpha=alpha, baseline=baseline),
                 metrics_online.MadAcrossRuns(
-                    lowpass_thresh=freq_thresh, eval_points=eval_points, window_size=window_size, baseline=baseline
+                    lowpass_thresh=freq_thresh,
+                    eval_points=eval_points,
+                    window_size=window_size,
+                    baseline=baseline,
                 ),
                 metrics_online.MadWithinRuns(
-                    eval_points=eval_points, window_size=window_size_trimmed, baseline=baseline
+                    eval_points=eval_points,
+                    window_size=window_size_trimmed,
+                    baseline=baseline,
                 ),
                 metrics_online.MaxDrawdown(),
                 metrics_online.StddevAcrossRuns(
-                    lowpass_thresh=freq_thresh, eval_points=eval_points, window_size=window_size, baseline=baseline
+                    lowpass_thresh=freq_thresh,
+                    eval_points=eval_points,
+                    window_size=window_size,
+                    baseline=baseline,
                 ),
                 metrics_online.StddevWithinRuns(
-                    eval_points=eval_points, window_size=window_size_trimmed, baseline=baseline
+                    eval_points=eval_points,
+                    window_size=window_size_trimmed,
+                    baseline=baseline,
                 ),
                 metrics_online.UpperCVaROnAcross(
                     alpha=alpha,
@@ -166,7 +186,9 @@ class RLReliability(evaluate.Metric):
                 metrics_online.UpperCVaROnDiffs(alpha=alpha, baseline=baseline),
                 metrics_online.UpperCVaROnDrawdown(alpha=alpha, baseline=baseline),
                 metrics_online.UpperCVaROnRaw(alpha=alpha, baseline=baseline),
-                metrics_online.MedianPerfDuringTraining(window_size=window_size, eval_points=eval_points),
+                metrics_online.MedianPerfDuringTraining(
+                    window_size=window_size, eval_points=eval_points
+                ),
             ]
         else:
             if baseline == "default":
