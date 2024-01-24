@@ -69,21 +69,24 @@ class LLMProxyEvaluator(Evaluator):
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
 
         data = self.load_data(data=data, subset=subset, split=split)
+        
+        # Add 'references' to metric_inputs
         metric_inputs, pipe_inputs = self.prepare_data(
             data=data, input_variables=input_variables, label_column=label_column
         )
         pipe = self.prepare_pipeline(model_or_pipeline=model_or_pipeline)
 
-        metric = self.prepare_metric(metric)
-
         # Compute predictions
-        print(f"Invoking pipeline")
+        logger.info("Invoking pipeline")
         predictions, perf_results = self.call_pipeline(pipe, **pipe_inputs)
-        print(f"Pipeline invoked")
+        logger.info("Pipeline invoked")
         predictions = self.predictions_processor(predictions, predictions_processor_fn)
+
+        # Add predictions to metric_inputs
         metric_inputs.update({"predictions": predictions["predictions"]})
 
         # Compute metrics from references and predictions
+        metric = self.prepare_metric(metric)
         metric_output = self.compute_metric(
             metric=metric,
             metric_inputs=metric_inputs,
