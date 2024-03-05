@@ -123,11 +123,15 @@ class EvaluationSuite:
 
         results = []
         task = next(task for task in self.suite if task.subset == task_name)
-        task_name = task.data
+        task_name = task.data if isinstance(task.data, str) else str(task.data)
 
         if task.data_preprocessor:  # task requires extra preprocessing
             try:
-                ds = load_dataset(task.data, name=task.subset, split=task.split)
+                if isinstance(task.data, str):
+                    ds = load_dataset(task.data, name=task.subset, split=task.split)
+                else:
+                    # Ignore the subset and split if task.data is already a dataset
+                    ds = task.data
             except ValueError as e:
                 print(f"Builder config not found for {task.data} - {task.subset}")
                 print(f"Using default config for {task.data}")
