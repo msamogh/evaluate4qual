@@ -126,7 +126,12 @@ class EvaluationSuite:
         task_name = task.data
 
         if task.data_preprocessor:  # task requires extra preprocessing
-            ds = load_dataset(task.data, name=task.subset, split=task.split)
+            try:
+                ds = load_dataset(task.data, name=task.subset, split=task.split)
+            except ValueError as e:
+                print(f"Builder config not found for {task.data} - {task.subset}")
+                print(f"Using default config for {task.data}")
+                ds = load_dataset(task.data, split=task.split)
             task.data = ds.map(task.data_preprocessor)
 
         print(f"Preprocessing complete for task {task_name}")

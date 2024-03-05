@@ -68,7 +68,10 @@ class LLMProxyEvaluator(Evaluator):
         metric_result = {}
         self.check_for_mismatch_in_device_setup(device, model_or_pipeline)
 
-        data = self.load_data(data=data, subset=subset, split=split)
+        if isinstance(data, str):
+            data = self.load_data(data=data, subset=subset, split=split)
+        elif isinstance(data, Dataset):
+            pass
         
         # Add 'references' to metric_inputs
         metric_inputs, pipe_inputs = self.prepare_data(
